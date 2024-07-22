@@ -1,7 +1,7 @@
 import { Button, Card, CardSection, Text } from "@mantine/core";
 import Image from "next/image";
 import Link from "next/link";
-import { FC } from "react";
+import React, { type FC } from "react";
 
 type ModelCardProps = {
   id: string;

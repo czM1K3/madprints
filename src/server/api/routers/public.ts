@@ -5,7 +5,6 @@ import {
 } from "~/server/api/trpc";
 import e from "e";
 import { env } from "~/env";
-import { title } from "process";
 
 export const publicRouter = createTRPCRouter({
   modelsPage: publicProcedure

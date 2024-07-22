@@ -42,6 +42,9 @@ export default function RootLayout({
             </AppShell>
           </TRPCReactProvider>
         </MantineProvider>
+        <div dangerouslySetInnerHTML={{
+          __html:'<script src="/worker-loader.js"></script>'
+        }} />
       </body>
     </html>
   );
