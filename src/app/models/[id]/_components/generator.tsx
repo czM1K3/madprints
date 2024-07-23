@@ -1,5 +1,5 @@
 "use client";
-import { Accordion, AccordionControl, AccordionItem, AccordionPanel, Button, Center, Container, Group, LoadingOverlay, Paper, Text } from "@mantine/core";
+import { Accordion, AccordionControl, AccordionItem, AccordionPanel, Box, Button, Center, Code, Container, Group, LoadingOverlay, Modal, Paper, Text } from "@mantine/core";
 import React, { useEffect, useState, type FC } from "react";
 import { StlViewer } from "react-stl-viewer";
 
@@ -27,14 +27,20 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [outputs, setOutputs] = useState<string[]>([]);
+  const [showOutputs, setShowOutputs] = useState(false);
 
   useEffect(() => {
     if (window.openscad) {
       window.openscad.onmessage = (message: MessageEvent<GeneratorOutput>) => {
-        const blob = message.data.data !== null ? new Blob([message.data.data], { type: "application/octet-stream" }) : null;
-        setModelUrl(blob !== null ? URL.createObjectURL(blob) : null);
         setOutputs(message.data.outputs);
         setIsLoading(false);
+        if (message.data.data) {
+          const blob = new Blob([message.data.data], { type: "application/octet-stream" });
+          setModelUrl(URL.createObjectURL(blob));
+        } else {
+          setModelUrl(null);
+          setShowOutputs(true);
+        }
       };
     }
   }, []);
@@ -110,15 +116,27 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
               <Text>Model is not yet generated</Text>
             </Center>
           )}
-        <Button
+        <Box
           pos="absolute"
           right="0"
           bottom="0"
-          m="1rem"
-          onClick={() => download()}
-        >Download</Button>
+          p=""
+        >
+        <Button
+            onClick={() => setShowOutputs(true)}
+            disabled={outputs.length === 0}
+          >Show logs</Button>
+        <Button
+            m="1rem"
+            onClick={() => download()}
+            disabled={!modelUrl}
+          >Download</Button>
+        </Box>
       </Container>
       <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+      <Modal opened={showOutputs} onClose={() => setShowOutputs(false)} title="Logs">
+        <Code block>{outputs.join("\n")}</Code>
+      </Modal>
     </Paper>
   );
 }

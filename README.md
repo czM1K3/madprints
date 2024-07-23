@@ -36,6 +36,32 @@ insert Model {
   description := "Kyechain for cool guys",
   iterations := {
     (insert ModelIteration { number := 1, code := "cube(15)" }),
-    (insert ModelIteration { number := 2, code := "cube(20)" })
+    (insert ModelIteration { number := 2, code := "Text = \"Gratuluji!\";
+Width = 80;
+Height = 20;
+Depth = 2;
+TextDepth = 2;
+HoleDiameter = 5;
+
+union() {
+    cube([Width, Height, Depth]);
+    translate([0, Height / 2, Depth])
+        linear_extrude(TextDepth, convexity = 4)
+            resize([Width-5, 0], auto = true)
+                text(Text, valign = \"center\");
+    translate([-Height, 0, 0])
+        difference() {
+            cube([Height, Height, Depth]);
+            translate([Height/2, Height/2, -0.5])
+                cylinder(r = HoleDiameter, h = Depth+1);
+            difference() {
+                cube([Height/2, Height, Depth]);
+                translate([Height / 2, Height/2, 0])
+                    cylinder(d = Height, h = Depth);
+            }
+        }
+}
+
+" })
   }
 }
