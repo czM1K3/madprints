@@ -3,6 +3,7 @@ import { Accordion, AccordionControl, AccordionItem, AccordionPanel, Box, Button
 import React, { useEffect, useState, type FC } from "react";
 import { StlViewer } from "react-stl-viewer";
 import { ParameterInputField, type ParameterInput } from "./input";
+import { ShowCode } from "./showCode";
 
 type Iteration = {
   id: string;
@@ -64,7 +65,6 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
   }
 
   const parameterChange = (parameterName: string, value: string) => {
-    console.log(value);
     setParameters((parameters) => {
       const obj = { ...parameters };
       obj[parameterName] = value;
@@ -87,21 +87,20 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
             case "Boolean":
               return value === "true" ? "true" : "false";
             case "String":
-              return `"${value}"`;
+              return `"${value.replaceAll('"', '\\"')}"`;
             default:
               return "error";
           }
         })()
         arr.push(`${key}=${valueEdited}`);
       });
-      console.log(arr);
       setIsLoading(true);
       window.openscad.postMessage({
         code : iteration.code,
         parameters: arr,
       });
     } else {
-      console.log("Something is wrong");
+      console.error("Something is wrong");
     }
   }
 
@@ -158,6 +157,7 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
                   generate(iteration.id);
                 }}
               >Generate</Button>
+              <ShowCode code={iteration.code} />
             </AccordionPanel>
           </AccordionItem>
         ))}
