@@ -1,7 +1,8 @@
 "use client";
-import { Accordion, AccordionControl, AccordionItem, AccordionPanel, Box, Button, Center, Code, Container, Group, LoadingOverlay, Modal, Paper, Text } from "@mantine/core";
+import { Accordion, AccordionControl, AccordionItem, AccordionPanel, Box, Button, Center, Code, Container, Group, LoadingOverlay, Modal, Paper, Text, Title } from "@mantine/core";
 import React, { useEffect, useState, type FC } from "react";
 import { StlViewer } from "react-stl-viewer";
+import { ParameterInputField, ParameterType, type ParameterInput } from "./input";
 
 type ModelGeneratorProps = {
   iterations: {
@@ -9,6 +10,7 @@ type ModelGeneratorProps = {
     number: number;
     code: string;
     created_at: Date;
+    parameters: ParameterInput[];
   }[];
 };
 
@@ -28,6 +30,7 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
   const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [outputs, setOutputs] = useState<string[]>([]);
   const [showOutputs, setShowOutputs] = useState(false);
+  const [parameters, setParameters] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (window.openscad) {
@@ -43,13 +46,55 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
         }
       };
     }
+    iterationChange(iterations[0]?.id ?? null);
   }, []);
+
+  const iterationChange = (id: string | null) => {
+    const matchingIterations = iterations.find((iteration) => iteration.id === id);
+    if (matchingIterations) {
+      const arr = matchingIterations.parameters.map((parameter) => ({ [parameter.name]: parameter.default_value }));
+      const obj = Object.fromEntries(arr.flatMap(Object.entries));
+      setParameters(obj);
+    }
+  }
+
+  const parameterChange = (parameterName: string, value: string) => {
+    console.log(value);
+    setParameters((parameters) => {
+      const obj = { ...parameters };
+      obj[parameterName] = value;
+      return obj;
+    });
+  }
 
   const generate = (iterationId: string) => {
     const iteration = iterations.filter((i) => i.id === iterationId)[0];
     if (iteration && window.openscad) {
+      const arr: string[] = [];
+      Object.entries(parameters).forEach(([key, value]) => {
+        arr.push("-D");
+        const valueEdited = (() => {
+          const parameter = iteration.parameters.find((parameter) => parameter.name === key);
+          if (!parameter) return "error";
+          switch (parameter.datatype) {
+            case "Number":
+              return value;
+            case "Boolean":
+              return value === "true" ? "true" : "false";
+            case "String":
+              return `"${value}"`;
+            default:
+              return "error";
+          }
+        })()
+        arr.push(`${key}=${valueEdited}`);
+      });
+      console.log(arr);
       setIsLoading(true);
-      window.openscad.postMessage(iteration.code);
+      window.openscad.postMessage({
+        code : iteration.code,
+        parameters: arr,
+      });
     } else {
       console.log("Something is wrong");
     }
@@ -68,7 +113,7 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
 
   return (
     <Paper shadow="xs" p="sm" m="md" pos="relative">
-      <Accordion chevronPosition="right" variant="contained" defaultValue={iterations[0]?.id}>
+      <Accordion chevronPosition="right" variant="contained" defaultValue={iterations[0]?.id} onChange={iterationChange}>
         {iterations.map((iteration) => (
           <AccordionItem value={iteration.id} key={iteration.id}>
             <AccordionControl>
@@ -82,7 +127,28 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
               </Group>
             </AccordionControl>
             <AccordionPanel>
+              {(iteration.parameters.length > 0) && (
+                <Paper m="1rem 0" p="1rem 0.5rem">
+                  <Title>Parameters</Title>
+                  {iteration.parameters.map((parameter) => (
+                    <ParameterInputField
+                      key={parameter.id}
+                      input={parameter}
+                      value={parameters[parameter.name] ?? ""}
+                      onChange={(value) => parameterChange(parameter.name, value)}
+                    />
+                  ))}
+                  <Button
+                    m="1rem 0 0"
+                    onClick={() => {
+                      iterationChange(iteration.id);
+                    }}
+                  >Reset default values</Button>
+                  {/* {JSON.stringify(parameters)} */}
+                </Paper>
+              )}
               <Button
+                m="0.2rem"
                 onClick={() => {
                   generate(iteration.id);
                 }}

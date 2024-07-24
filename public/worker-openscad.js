@@ -14,8 +14,8 @@ self.onmessage = async (message) => {
       },
     });
     addFonts(instance);
-    instance.FS.writeFile("/input.scad", message.data);
-    instance.callMain(["/input.scad", "-o", "cube.stl", "-D", "Text=\"Congratulations!\"", "-D", "Width=120"]);
+    instance.FS.writeFile("/input.scad", message.data.code);
+    instance.callMain(["/input.scad", "-o", "cube.stl", ...message.data.parameters]);
     const data = instance.FS.readFile("/cube.stl");
 
     self.postMessage({ data, outputs });

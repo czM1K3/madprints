@@ -16,5 +16,15 @@ module default {
             default := std::datetime_current();
             readonly := true;
         };
+        multi parameters: ModelIterationParameters;
+    }
+
+    scalar type ParameterType extending enum<Number, Boolean, String>;
+
+    type ModelIterationParameters {
+        required name: str;
+        required datatype : ParameterType;
+        required default_value: str;
+        description: str;
     }
 }

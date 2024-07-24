@@ -62,6 +62,13 @@ union() {
         }
 }
 
-" })
+", parameters := {
+      (insert ModelIterationParameters { name := "Title", datatype := <ParameterType>"String", default_value := "Gratuluji", description := "Main text on the keychain" }),
+      (insert ModelIterationParameters { name := "Width", datatype := <ParameterType>"Number", default_value := "80" }),
+      (insert ModelIterationParameters { name := "Height", datatype := <ParameterType>"Number", default_value := "20" }),
+      (insert ModelIterationParameters { name := "Depth", datatype := <ParameterType>"Number", default_value := "2"}),
+      (insert ModelIterationParameters { name := "TextDepth", datatype := <ParameterType>"Number", default_value := "2" }),
+      (insert ModelIterationParameters { name := "HoleDiameter", datatype := <ParameterType>"Number", default_value := "5" })
+    }})
   }
 }

@@ -48,6 +48,13 @@ export const publicRouter = createTRPCRouter({
           number: true,
           code: true,
           created_at: true,
+          parameters: {
+            id: true,
+            name: true,
+            datatype: true,
+            default_value: true,
+            description: true,
+          },
           order_by: {
             expression: iteration.created_at,
             direction: e.DESC,
