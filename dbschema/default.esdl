@@ -6,7 +6,10 @@ module default {
             default := std::datetime_current();
             readonly := true;
         };
-        multi iterations: ModelIteration;
+        multi iterations := .<model[is ModelIteration];
+        required link user -> User {
+            on target delete delete source;
+        };
     }
 
     type ModelIteration {
@@ -16,7 +19,11 @@ module default {
             default := std::datetime_current();
             readonly := true;
         };
-        multi parameters: ModelIterationParameters;
+        multi parameters := .<modelIteration[is ModelIterationParameters];
+
+        required link model -> Model {
+            on target delete delete source;
+        };
     }
 
     scalar type ParameterType extending enum<Number, Boolean, String>;
@@ -26,6 +33,10 @@ module default {
         required datatype : ParameterType;
         required default_value: str;
         description: str;
+
+        required link modelIteration -> ModelIteration {
+            on target delete delete source;
+        };
     }
 
     # Auth.js stuff
@@ -42,6 +53,8 @@ module default {
         property createdAt -> datetime {
             default := datetime_current();
         };
+
+        multi models := .<user[is Model];
     }
 
     type Account {
