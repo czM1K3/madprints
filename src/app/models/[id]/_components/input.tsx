@@ -1,7 +1,7 @@
 import { Input, InputWrapper, NumberInput, Text } from "@mantine/core";
 import React, { type FC } from "react";
 
-export type ParameterType = "Number" | "Boolean" | "String";;
+export type ParameterType = "Number" | "Boolean" | "String";
 
 export type ParameterInput = {
   id: string;

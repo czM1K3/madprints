@@ -1,9 +1,9 @@
-import {
-  getServerSession,
-  type DefaultSession,
-  type NextAuthOptions,
-} from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
+import NextAuth, { type DefaultSession } from "next-auth";
+// import DiscordProvider from "next-auth/providers/discord";
+import GitHubProvider from "next-auth/providers/github";
+import { EdgeDBAdapter } from "@auth/edgedb-adapter";
+import edgedb from "./database";
+import { type Adapter } from "next-auth/adapters";
 
 import { env } from "~/env";
 
@@ -24,7 +24,7 @@ declare module "next-auth" {
 
   // interface User {
   //   // ...other properties
-  //   // role: UserRole;
+  //   role: UserRole;
   // }
 }
 
@@ -33,20 +33,26 @@ declare module "next-auth" {
  *
  * @see https://next-auth.js.org/configuration/options
  */
-export const authOptions: NextAuthOptions = {
-  callbacks: {
-    session: ({ session, token }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: token.sub,
-      },
-    }),
-  },
+export const { auth, handlers, signIn, signOut } = NextAuth({
+  adapter: EdgeDBAdapter(edgedb) as Adapter,
+  // callbacks: {
+  //   session: ({ session, user }) => ({
+  //     ...session,
+  //     user: {
+  //       ...session.user,
+  //       id: user.id,
+  //       // role: user.role,
+  //     },
+  //   }),
+  // },
   providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
+    // DiscordProvider({
+    //   clientId: env.DISCORD_CLIENT_ID,
+    //   clientSecret: env.DISCORD_CLIENT_SECRET,
+    // }),
+    GitHubProvider({
+      clientId: env.GITHUB_CLIENT_ID,
+      clientSecret: env.GITHUB_CLIENT_SECRET,
     }),
     /**
      * ...add more providers here.
@@ -58,11 +64,11 @@ export const authOptions: NextAuthOptions = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
-};
+});
 
 /**
  * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.
  *
  * @see https://next-auth.js.org/configuration/nextjs
  */
-export const getServerAuthSession = () => getServerSession(authOptions);
+// export const getServerAuthSession = () => auth();

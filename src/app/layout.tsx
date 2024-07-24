@@ -8,6 +8,7 @@ import { TRPCReactProvider } from "~/trpc/react";
 import { AppShell, AppShellHeader, AppShellMain, ColorSchemeScript, MantineProvider } from "@mantine/core";
 import { theme } from "./_theme";
 import Link from "next/link";
+import { auth } from "~/server/auth";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -15,9 +16,10 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const session = await auth();
   return (
     <html lang="en">
       <head>
@@ -35,6 +37,17 @@ export default function RootLayout({
             >
               <AppShellHeader>
                 <Link href="/">MadPrints</Link>
+                <div>
+                  <p>
+                    {session && <span>Logged in as {session.user?.name}</span>}
+                  </p>
+                  {/* <p>{JSON.stringify(session)}</p> */}
+                  <Link
+                    href={session ? "/api/auth/signout" : "/api/auth/signin"}
+                  >
+                    {session ? "Sign out" : "Sign in"}
+                  </Link>
+                </div>
               </AppShellHeader>
               <AppShellMain>
                 {children}
