@@ -1,9 +1,10 @@
 "use client";
-import { Accordion, AccordionControl, AccordionItem, AccordionPanel, Box, Button, Center, Code, Container, Group, LoadingOverlay, Modal, Paper, Text, Title } from "@mantine/core";
+import { Accordion, AccordionControl, AccordionItem, AccordionPanel, Box, Button, Center, Code, Group, LoadingOverlay, Modal, Paper, Text, Title } from "@mantine/core";
 import React, { useEffect, useState, type FC } from "react";
 import { StlViewer } from "react-stl-viewer";
 import { ParameterInputField, type ParameterInput } from "./input";
 import { ShowCode } from "./showCode";
+import { useColorScheme } from "@mantine/hooks";
 
 type Iteration = {
   id: string;
@@ -40,6 +41,7 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
   const [outputs, setOutputs] = useState<string[]>([]);
   const [showOutputs, setShowOutputs] = useState(false);
   const [parameters, setParameters] = useState<Record<string, string>>(getIterationDefaultParams(iterations[0]!));
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     if (window.openscad) {
@@ -162,12 +164,12 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
           </AccordionItem>
         ))}
       </Accordion>
-      <Container
+      <Paper
         h="50vh"
         w="100%"
         p="0"
         pos="relative"
-        bd="1px solid lightgray"
+        bd={`1px solid ${colorScheme === "light" ? "var(--mantine-color-gray-3)" : "var(--mantine-color-dark-4)"}`}
         mt="0.4rem"
         style={{
           borderRadius: "0.4rem",
@@ -203,7 +205,7 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
             disabled={!modelUrl}
           >Download</Button>
         </Box>
-      </Container>
+      </Paper>
       <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
       <Modal opened={showOutputs} onClose={() => setShowOutputs(false)} title="Logs">
         <Code block>{outputs.join("\n")}</Code>

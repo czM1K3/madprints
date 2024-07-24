@@ -9,6 +9,19 @@ const config = {
   experimental: {
     optimizePackageImports: ["@mantine/core", "@mantine/hooks"]
   },
+  headers: async () => {
+    return [
+      {
+        source: "/",
+        headers: [
+          {
+            key: "Accept-CH",
+            value: "Sec-CH-Prefers-Color-Scheme",
+          }
+        ],
+      }
+    ];
+  },
 };
 
 export default config;

@@ -9,6 +9,7 @@ import { AppShell, AppShellHeader, AppShellMain, ColorSchemeScript, MantineProvi
 import { theme } from "./_theme";
 import Link from "next/link";
 import { auth } from "~/server/auth";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -20,17 +21,18 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const session = await auth();
+  const colorScheme = headers().get("sec-ch-prefers-color-scheme");
   return (
     <html lang="en">
       <head>
-        <ColorSchemeScript />
+        <ColorSchemeScript defaultColorScheme={colorScheme === "dark" ? "dark" : "light"} />
         <meta
           name="viewport"
           content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
         />
       </head>
       <body className={GeistSans.className}>
-        <MantineProvider theme={theme}>
+        <MantineProvider theme={theme} defaultColorScheme="auto">
           <TRPCReactProvider>
             <AppShell
               header={{ height: 60 }}
@@ -42,9 +44,7 @@ export default async function RootLayout({
                     {session && <span>Logged in as {session.user?.name}</span>}
                   </p>
                   {/* <p>{JSON.stringify(session)}</p> */}
-                  <Link
-                    href={session ? "/api/auth/signout" : "/api/auth/signin"}
-                  >
+                  <Link href={session ? "/api/auth/signout" : "/api/auth/signin"}>
                     {session ? "Sign out" : "Sign in"}
                   </Link>
                 </div>
