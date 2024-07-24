@@ -2,16 +2,18 @@
 import { Accordion, AccordionControl, AccordionItem, AccordionPanel, Box, Button, Center, Code, Container, Group, LoadingOverlay, Modal, Paper, Text, Title } from "@mantine/core";
 import React, { useEffect, useState, type FC } from "react";
 import { StlViewer } from "react-stl-viewer";
-import { ParameterInputField, ParameterType, type ParameterInput } from "./input";
+import { ParameterInputField, type ParameterInput } from "./input";
+
+type Iteration = {
+  id: string;
+  number: number;
+  code: string;
+  created_at: Date;
+  parameters: ParameterInput[];
+};
 
 type ModelGeneratorProps = {
-  iterations: {
-    id: string;
-    number: number;
-    code: string;
-    created_at: Date;
-    parameters: ParameterInput[];
-  }[];
+  iterations: Iteration[];
 };
 
 type GeneratorOutput = {
@@ -25,12 +27,18 @@ declare global {
   }
 }
 
+const getIterationDefaultParams = (iteration: Iteration) => {
+  const arr = iteration.parameters.map((parameter) => ({ [parameter.name]: parameter.default_value }));
+  const obj = Object.fromEntries(arr.flatMap(Object.entries));
+  return obj;
+}
+
 const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [outputs, setOutputs] = useState<string[]>([]);
   const [showOutputs, setShowOutputs] = useState(false);
-  const [parameters, setParameters] = useState<Record<string, string>>({});
+  const [parameters, setParameters] = useState<Record<string, string>>(getIterationDefaultParams(iterations[0]!));
 
   useEffect(() => {
     if (window.openscad) {
@@ -46,15 +54,12 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
         }
       };
     }
-    iterationChange(iterations[0]?.id ?? null);
   }, []);
 
   const iterationChange = (id: string | null) => {
-    const matchingIterations = iterations.find((iteration) => iteration.id === id);
-    if (matchingIterations) {
-      const arr = matchingIterations.parameters.map((parameter) => ({ [parameter.name]: parameter.default_value }));
-      const obj = Object.fromEntries(arr.flatMap(Object.entries));
-      setParameters(obj);
+    const matchingIteration = iterations.find((iteration) => iteration.id === id);
+    if (matchingIteration) {
+      setParameters(getIterationDefaultParams(matchingIteration));
     }
   }
 
