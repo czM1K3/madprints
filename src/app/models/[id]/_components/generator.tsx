@@ -8,7 +8,7 @@ import { useColorScheme } from "@mantine/hooks";
 
 type Iteration = {
   id: string;
-  number: number;
+  number?: number;
   code: string;
   created_at: Date;
   parameters: ParameterInput[];
@@ -35,7 +35,7 @@ const getIterationDefaultParams = (iteration: Iteration) => {
   return obj;
 }
 
-const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
+export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [outputs, setOutputs] = useState<string[]>([]);
@@ -58,6 +58,12 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
       };
     }
   }, []);
+
+  useEffect(() => {
+    if (iterations.length >= 1) {
+      setParameters(getIterationDefaultParams(iterations[0]!));
+    }
+  }, [iterations]);
 
   const iterationChange = (id: string | null) => {
     const matchingIteration = iterations.find((iteration) => iteration.id === id);
@@ -125,7 +131,7 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
             <AccordionControl>
               <Group wrap="nowrap">
                 <div>
-                  <Text>Version {iteration.number}</Text>
+                  <Text>Version {iteration.number ?? "Preview"}</Text>
                   <Text size="sm" c="dimmed" fw={400}>
                     {iteration.created_at.toLocaleString("en-us")}
                   </Text>
@@ -213,5 +219,3 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
     </Paper>
   );
 }
-
-export default ModelGenerator;

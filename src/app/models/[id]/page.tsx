@@ -2,7 +2,7 @@ import { Center, Image, Paper, Text, Title } from "@mantine/core";
 import { notFound } from "next/navigation";
 import { type FC } from "react";
 import { api, HydrateClient } from "~/trpc/server";
-import ModelGenerator from "./_components/generator";
+import { ModelGenerator } from "./_components/generator";
 
 type ModelPageProps = {
   params: {
