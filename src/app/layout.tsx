@@ -5,11 +5,12 @@ import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "~/trpc/react";
-import { AppShell, AppShellHeader, AppShellMain, ColorSchemeScript, MantineProvider } from "@mantine/core";
+import { AppShell, AppShellHeader, AppShellMain, ColorSchemeScript, Group, MantineProvider } from "@mantine/core";
 import { theme } from "./_theme";
 import Link from "next/link";
 import { auth } from "~/server/auth";
 import { headers } from "next/headers";
+import { RightDrawer } from "./_components/drawer";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -38,16 +39,10 @@ export default async function RootLayout({
               header={{ height: 60 }}
             >
               <AppShellHeader>
-                <Link href="/">MadPrints</Link>
-                <div>
-                  <p>
-                    {session && <span>Logged in as {session.user?.name}</span>}
-                  </p>
-                  {/* <p>{JSON.stringify(session)}</p> */}
-                  <Link href={session ? "/api/auth/signout" : "/api/auth/signin"}>
-                    {session ? "Sign out" : "Sign in"}
-                  </Link>
-                </div>
+                <Group h="100%" px="md" justify="space-between">
+                  <Link href="/">MadPrints</Link>
+                  <RightDrawer session={session} />
+                </Group>
               </AppShellHeader>
               <AppShellMain>
                 {children}

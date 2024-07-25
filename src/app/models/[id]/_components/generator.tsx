@@ -206,7 +206,7 @@ const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
           >Download</Button>
         </Box>
       </Paper>
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+      <LoadingOverlay visible={isLoading} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
       <Modal opened={showOutputs} onClose={() => setShowOutputs(false)} title="Logs">
         <Code block>{outputs.join("\n")}</Code>
       </Modal>
