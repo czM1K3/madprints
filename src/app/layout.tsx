@@ -1,5 +1,6 @@
 import "~/styles/globals.css";
 import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
@@ -11,6 +12,7 @@ import Link from "next/link";
 import { auth } from "~/server/auth";
 import { headers } from "next/headers";
 import { RightDrawer } from "./_components/drawer";
+import { Notifications } from '@mantine/notifications';
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -34,6 +36,7 @@ export default async function RootLayout({
       </head>
       <body className={GeistSans.className}>
         <MantineProvider theme={theme} defaultColorScheme="auto">
+          <Notifications position="top-right" />
           <TRPCReactProvider>
             <AppShell
               header={{ height: 60 }}

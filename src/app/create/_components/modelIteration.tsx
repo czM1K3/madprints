@@ -1,4 +1,5 @@
 import { Button, CloseButton, Modal, NativeSelect, Table, TableTbody, TableTd, TableThead, TableTr, Textarea, TextInput, Title } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import React, { type Dispatch, type SetStateAction, type FC, useState, useEffect } from "react";
 import { ModelGenerator } from "~/app/models/[id]/_components/generator";
 import { type ParameterType, type ParameterInput, ParameterInputField } from "~/app/models/[id]/_components/input";
@@ -34,10 +35,20 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
 
   const addParameter = () => {
     if (newParameterName.length === 0) {
+      notifications.show({
+        title: "Wrong input",
+        message: "Parameter name has got to include any letters",
+        color: "red",
+      });
       return;
     }
     const existingNames = [...parameters].map((p) => p.name.toUpperCase());
     if (existingNames.includes(newParameterName.toUpperCase())) {
+      notifications.show({
+        title: "Wrong input",
+        message: `Parameter name "${newParameterName}" already exists`,
+        color: "red",
+      });
       return;
     }
     const newParameter: ParameterInput = {

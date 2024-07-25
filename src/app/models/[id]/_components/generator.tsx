@@ -5,6 +5,7 @@ import { StlViewer } from "react-stl-viewer";
 import { ParameterInputField, type ParameterInput } from "./input";
 import { ShowCode } from "./showCode";
 import { useColorScheme } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
 
 type Iteration = {
   id: string;
@@ -53,6 +54,11 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
           setModelUrl(URL.createObjectURL(blob));
         } else {
           setModelUrl(null);
+          notifications.show({
+            title: "Failed to generate",
+            message: "Model failed to generate, check logs",
+            color: "red",
+          });
           setShowOutputs(true);
         }
       };
