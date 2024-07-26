@@ -65,12 +65,8 @@ export const publicRouter = createTRPCRouter({
           name: true,
           image: true,
         },
-        filter: e.op(model.id, "=", e.uuid(input.id)),
+        filter_single: e.op(model.id, "=", e.uuid(input.id)),
       })).run(ctx.edgedb);
-      if (res.length === 1) {
-        return res[0];
-      } else {
-        return null;
-      }
+      return res;
     }),
 });

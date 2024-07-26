@@ -1,9 +1,11 @@
-import { Center, Image, Paper, Text, Title } from "@mantine/core";
+import { Button, Center, Image, Paper, Text, Title } from "@mantine/core";
 import { notFound } from "next/navigation";
 import { type FC } from "react";
 import { api, HydrateClient } from "~/trpc/server";
 import { ModelGenerator } from "./_components/generator";
 import { UserInfo } from "./_components/user";
+import { auth } from "~/server/auth";
+import Link from "next/link";
 
 type ModelPageProps = {
   params: {
@@ -16,6 +18,7 @@ const ModelPage: FC<ModelPageProps> = async ({ params }) => {
   if (!modelData) {
     return notFound();
   }
+  const session = await auth();
   return (
     <HydrateClient>
       <main>
@@ -35,6 +38,9 @@ const ModelPage: FC<ModelPageProps> = async ({ params }) => {
             />
           </Center>
           <Text>{modelData.description}</Text>
+          {session && session.user && session.user.id === modelData.user.id && (
+            <Button component={Link} href={`/models/${modelData.id}/edit`}>Edit</Button>
+          )}
         </Paper>
         {modelData.iterations.length > 0 && (
           <ModelGenerator iterations={modelData.iterations} />

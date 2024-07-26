@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import e from "e";
+import { TRPCError } from "@trpc/server";
 
 export const modelRouter = createTRPCRouter({
   create: protectedProcedure.input(z.object({
@@ -43,5 +44,53 @@ export const modelRouter = createTRPCRouter({
       return modelId;
     });
     return modelId;
+  }),
+
+  editProps: protectedProcedure.input(z.object({
+    id: z.string().uuid(),
+  })).query(async ({ ctx, input }) => {
+    const res = await e.select(e.Model, (model) => ({
+      id: true,
+      title: true,
+      description: true,
+      user: {
+        id: true,
+      },
+      filter_single: e.op(model.id, "=", e.uuid(input.id)),
+    })).run(ctx.edgedb);
+    if (res && res.user.id === ctx.session.user.id) {
+      return {
+        ...res,
+        user: undefined,
+      };
+    } else {
+      return null;
+    }
+  }),
+
+  edit: protectedProcedure.input(z.object({
+    id: z.string().uuid(),
+    title: z.string(),
+    description: z.string(),
+  })).mutation(async ({ ctx, input }) => {
+    const res = await e.select(e.Model, (model) => ({
+      user: {
+        id: true,
+      },
+      filter_single: e.op(model.id, "=", e.uuid(input.id)),
+    })).run(ctx.edgedb);
+    if (!res) {
+      throw new TRPCError({message: "Model no found", code: "NOT_FOUND" });
+    }
+    if (res.user.id !== ctx.session.user.id) {
+      throw new TRPCError({message: "Wrong user", code: "UNAUTHORIZED" });
+    }
+    await e.update(e.Model, (model) => ({
+      filter: e.op(model.id, "=", e.uuid(input.id)),
+      set: {
+        title: input.title,
+        description: input.description,
+      },
+    })).run(ctx.edgedb);
   }),
 });
