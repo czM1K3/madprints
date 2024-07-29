@@ -39,7 +39,10 @@ const ModelPage: FC<ModelPageProps> = async ({ params }) => {
           </Center>
           <Text>{modelData.description}</Text>
           {session && session.user && session.user.id === modelData.user.id && (
-            <Button component={Link} href={`/models/${modelData.id}/edit`}>Edit</Button>
+            <>
+              <Button component={Link} href={`/models/${modelData.id}/edit`} m="sm">Edit</Button>
+              <Button component={Link} href={`/models/${modelData.id}/new-iteration`} m="sm">New iteration</Button>
+            </>
           )}
         </Paper>
         {modelData.iterations.length > 0 && (
