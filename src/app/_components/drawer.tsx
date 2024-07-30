@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Burger, Drawer } from "@mantine/core";
+import { Box, Burger, Drawer, Text } from "@mantine/core";
 import { type Session } from "next-auth";
 import Link from "next/link";
 import React, { useState, type FC } from "react";
@@ -22,7 +22,7 @@ export const RightDrawer: FC<RightDrawerProps> = ({ session }) => {
         }}>
           {session ? (
             <>
-              <Link href={`/users/${session.user.id}`}>Logged in as {session.user.name}</Link>
+              <Text>Logged in as {session.user.name}</Text>
               <Link href="/create">Create new model</Link>
               <Link href="/api/auth/signout">Sign out</Link>
             </>
