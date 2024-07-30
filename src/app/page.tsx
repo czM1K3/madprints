@@ -1,12 +1,13 @@
-// import { getServerAuthSession } from "~/server/auth";
-import PagePage from "./page/[number]/page";
+import { api, HydrateClient } from "~/trpc/server";
+import { ModelsPage } from "./_components/modelsPage";
 
 const Home = async () => {
-
-  // const session = await getServerAuthSession();
+  const models = await api.public.modelsPage({ page: 1 });
 
   return (
-    <PagePage params={{ number: "1" }} />
+    <HydrateClient>
+      <ModelsPage initialData={models} />
+    </HydrateClient>
   );
 }
 
