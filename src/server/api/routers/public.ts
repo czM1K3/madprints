@@ -12,25 +12,35 @@ export const publicRouter = createTRPCRouter({
       page: z.number().min(1),
     }))
     .query(async ({ ctx, input }) => {
-      const modelsPromise = e.select(e.Model, (model) => ({
-        id: true,
-        title: true,
-        description: true,
-        limit: env.PER_PAGE,
-        offset: (input.page - 1) * env.PER_PAGE,
-        order_by: {
-          expression: model.created_at,
-          direction: e.DESC,
-        },
-      })).run(ctx.edgedb);
-      const countPromise = e.count(e.select(e.Model, (model) => ({
-        filter:e.op(model.title, "like", "%")
-      }))).run(ctx.edgedb);
-      const response = await Promise.all([modelsPromise, countPromise]);
-      return {
-        models: response[0],
-        pages: Math.ceil(response[1] / env.PER_PAGE),
-      };
+      const query = e.params({
+        page: e.int32,
+        perPage: e.int32,
+      }, (params) => e.tuple({
+        models: e.array_agg(e.select(e.Model, (model) => ({
+          id: true,
+          title: true,
+          description: true,
+          limit: env.PER_PAGE,
+          offset: e.op(e.op(params.page, "-", e.int32(1)), "*", params.perPage),
+          order_by: {
+            expression: model.created_at,
+            direction: e.DESC,
+          },
+        }))),
+        pages: e.math.ceil(
+          e.op(
+            e.count(e.select(e.Model, (model) => ({
+              filter: e.op(model.title, "like", "%")
+            }))),
+            "/",
+            params.perPage
+          )
+        ),
+      }));
+      return await query.run(ctx.edgedb,  {
+        page: input.page,
+        perPage: env.PER_PAGE,
+      });
     }),
 
   modelPage: publicProcedure
@@ -38,7 +48,9 @@ export const publicRouter = createTRPCRouter({
       id: z.string().uuid(),
     }))
     .query(async ({ ctx, input }) => {
-      const res = await e.select(e.Model, (model) => ({
+      const query = e.params({
+        id: e.uuid,
+      }, (params) => e.select(e.Model, (model) => ({
         id: true,
         title: true,
         description: true,
@@ -65,8 +77,10 @@ export const publicRouter = createTRPCRouter({
           name: true,
           image: true,
         },
-        filter_single: e.op(model.id, "=", e.uuid(input.id)),
-      })).run(ctx.edgedb);
-      return res;
+        filter_single: e.op(model.id, "=", params.id),
+      })));
+      return await query.run(ctx.edgedb, {
+        id: input.id,
+      });
     }),
 });
