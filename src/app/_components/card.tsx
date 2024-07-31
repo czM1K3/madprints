@@ -21,7 +21,7 @@ export const ModelCard: FC<ModelCardProps> = ({ description, id, title }) => {
         />
       </CardSection>
       <Text fw={500}>{title}</Text>
-      <Text size="sm" c="dimmed">{description}</Text>
+      <Text size="sm" c="dimmed" lineClamp={1}>{description}</Text>
       <Button component={Link} href={`/models/${id}`}>
         View
       </Button>

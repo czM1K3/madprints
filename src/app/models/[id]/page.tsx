@@ -37,7 +37,7 @@ const ModelPage: FC<ModelPageProps> = async ({ params }) => {
               fit="contain"
             />
           </Center>
-          <Text>{modelData.description}</Text>
+          <Text inline={false}>{modelData.description}</Text>
           {session && session.user && session.user.id === modelData.user.id && (
             <>
               <Button component={Link} href={`/models/${modelData.id}/edit`} m="sm">Edit</Button>

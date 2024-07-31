@@ -43,7 +43,7 @@ export const ModelsPage: FC<ModelsPageProps> = ({ initialData }) => {
           </Center>
           ))}
       </SimpleGrid>
-      <Center p="sm">
+      <Center p="sm" m="sm">
         <Pagination total={data.pages} value={page} onChange={(v) => setPage(v)} />
       </Center>
     </>
