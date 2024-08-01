@@ -10,37 +10,83 @@ export const publicRouter = createTRPCRouter({
   modelsPage: publicProcedure
     .input(z.object({
       page: z.number().min(1),
+      search: z.string().nullable(),
+      category: z.string().uuid().nullable(),
     }))
     .query(async ({ ctx, input }) => {
-      const query = e.params({
-        page: e.int32,
-        perPage: e.int32,
-      }, (params) => e.tuple({
+      const perPage = env.PER_PAGE;
+      const query = e.tuple({
         models: e.array_agg(e.select(e.Model, (model) => ({
           id: true,
           title: true,
           description: true,
+          category: {
+            id: true,
+            name: true,
+          },
           limit: env.PER_PAGE,
-          offset: e.op(e.op(params.page, "-", e.int32(1)), "*", params.perPage),
+          offset: e.op(e.op(input.page, "-", e.int32(1)), "*", perPage),
           order_by: {
             expression: model.created_at,
             direction: e.DESC,
           },
+          filter: (input.category ? ( // I hate it too, but for now it's good enough
+            input.search ? (
+              e.op(
+                e.op(
+                  e.op(model.title, "ilike", e.str(`%${input.search}%`)),
+                  "or",
+                  e.op(model.description, "ilike", e.str(`%${input.search}%`)),
+                ),
+                "and",
+                e.op(model.category.id, "=", e.uuid(input.category))
+              )
+            ) : (
+              e.op(model.category.id, "=", e.uuid(input.category))
+            )
+          ) : (
+              input.search ? (
+                e.op(
+                e.op(model.title, "ilike", e.str(`%${input.search}%`)),
+                "or",
+                e.op(model.description, "ilike", e.str(`%${input.search}%`)),
+              )
+            ) : undefined
+          )),
         }))),
         pages: e.math.ceil(
           e.op(
             e.count(e.select(e.Model, (model) => ({
-              filter: e.op(model.title, "like", "%")
+              filter: (input.category ? ( // But it's there twice...
+                input.search ? (
+                  e.op(
+                    e.op(
+                      e.op(model.title, "ilike", e.str(`%${input.search}%`)),
+                      "or",
+                      e.op(model.description, "ilike", e.str(`%${input.search}%`)),
+                    ),
+                    "and",
+                    e.op(model.category.id, "=", e.uuid(input.category))
+                  )
+                ) : (
+                  e.op(model.category.id, "=", e.uuid(input.category))
+                )
+              ) : (
+                  input.search ? (
+                    e.op(
+                    e.op(model.title, "ilike", e.str(`%${input.search}%`)),
+                    "or",
+                    e.op(model.description, "ilike", e.str(`%${input.search}%`)),
+                  )
+                ) : undefined
+              )),
             }))),
             "/",
-            params.perPage
+            perPage
           )
         ),
-      }));
-      return await query.run(ctx.edgedb,  {
-        page: input.page,
-        perPage: env.PER_PAGE,
       });
+      return await query.run(ctx.edgedb);
     }),
 
   modelPage: publicProcedure
@@ -83,4 +129,13 @@ export const publicRouter = createTRPCRouter({
         id: input.id,
       });
     }),
+
+  categories: publicProcedure.query(async ({ ctx }) => {
+    const query = e.select(e.Category, (category) => ({
+      id: true,
+      name: true,
+      order_by: category.name,
+    }));
+    return await query.run(ctx.edgedb);
+  }),
 });

@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate": "pnpx @edgedb/generate edgeql-js",
+    "edgedb:generate": "pnpx @edgedb/generate edgeql-js",
+    "edgedb:migration": "edgedb migration create",
+    "edgedb:migrate": "edgedb migrate",
+    "edgedb:ui": "edgedb ui",
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",

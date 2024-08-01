@@ -10,6 +10,7 @@ module default {
         required link user -> User {
             on target delete delete source;
         };
+        link category -> Category;
     }
 
     type ModelIteration {
@@ -37,6 +38,13 @@ module default {
         required link modelIteration -> ModelIteration {
             on target delete delete source;
         };
+    }
+
+    type Category {
+        required name: str {
+            constraint exclusive;
+        };
+        multi models := .<category[is Model];
     }
 
     # Auth.js stuff
