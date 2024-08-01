@@ -14,7 +14,7 @@ export const publicRouter = createTRPCRouter({
       category: z.string().uuid().nullable(),
     }))
     .query(async ({ ctx, input }) => {
-      const perPage = env.PER_PAGE;
+      const perPage = env.NEXT_PUBLIC_PER_PAGE;
       const query = e.tuple({
         models: e.array_agg(e.select(e.Model, (model) => ({
           id: true,
@@ -24,7 +24,7 @@ export const publicRouter = createTRPCRouter({
             id: true,
             name: true,
           },
-          limit: env.PER_PAGE,
+          limit: env.NEXT_PUBLIC_PER_PAGE,
           offset: e.op(e.op(input.page, "-", e.int32(1)), "*", perPage),
           order_by: {
             expression: model.created_at,
@@ -128,6 +128,22 @@ export const publicRouter = createTRPCRouter({
       return await query.run(ctx.edgedb, {
         id: input.id,
       });
+    }),
+
+  modelTitle: publicProcedure
+    .input(z.object({
+      id: z.string().uuid(),
+    }))
+    .query(async ({ input, ctx }) => {
+      const query = e.params({
+        id: e.uuid,
+      }, (params) => e.select(e.Model, (model) => ({
+        id: true,
+        title: true,
+        filter_single: e.op(model.id, "=", params.id),
+      })));
+      const response = await query.run(ctx.edgedb, { id: input.id });
+      return response?.title;
     }),
 
   categories: publicProcedure.query(async ({ ctx }) => {

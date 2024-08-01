@@ -1,4 +1,4 @@
-import { Button, Center, Image, Paper, Text, Title } from "@mantine/core";
+import { Button, Center, Image, Paper, Title, TypographyStylesProvider } from "@mantine/core";
 import { notFound } from "next/navigation";
 import { type FC } from "react";
 import { api, HydrateClient } from "~/trpc/server";
@@ -6,10 +6,19 @@ import { ModelGenerator } from "./_components/generator";
 import { UserInfo } from "./_components/user";
 import { auth } from "~/server/auth";
 import Link from "next/link";
+import type { Metadata, ResolvingMetadata } from "next";
+import Markdown from "markdown-to-jsx";
 
 type ModelPageProps = {
   params: {
     id: string;
+  };
+};
+
+export const generateMetadata = async ({ params }: ModelPageProps, _parent: ResolvingMetadata): Promise<Metadata> => {
+  const title = await api.public.modelTitle({ id: params.id }).catch(() => null);
+  return {
+    title: title ? `${title} | MadPrints`: "Model not found",
   };
 };
 
@@ -37,7 +46,9 @@ const ModelPage: FC<ModelPageProps> = async ({ params }) => {
               fit="contain"
             />
           </Center>
-          <Text inline={false}>{modelData.description}</Text>
+          <TypographyStylesProvider>
+            <Markdown>{modelData.description}</Markdown>
+          </TypographyStylesProvider>
           {session && session.user && session.user.id === modelData.user.id && (
             <>
               <Button component={Link} href={`/models/${modelData.id}/edit`} m="sm">Edit</Button>

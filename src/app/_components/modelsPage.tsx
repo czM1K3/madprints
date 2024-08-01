@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState, type FC } from "react";
 import { ModelCard } from "./card";
-import { Center, Pagination, Paper, Select, SimpleGrid, Text, TextInput } from "@mantine/core";
+import { Box, Center, LoadingOverlay, Pagination, Paper, Select, SimpleGrid, Text, TextInput } from "@mantine/core";
 import { api } from "~/trpc/react";
 import { type KeyValue } from "../page";
 import { useDebouncedValue } from "@mantine/hooks";
+import { env } from "~/env";
 
 type ModelsPageProps = {
   initialData: {
@@ -40,6 +41,7 @@ export const ModelsPage: FC<ModelsPageProps> = ({ initialData, categories }) => 
   }, {
     initialData,
     initialDataUpdatedAt: 0,
+    refetchOnMount: false,
   });
 
   useEffect(() => {
@@ -67,24 +69,25 @@ export const ModelsPage: FC<ModelsPageProps> = ({ initialData, categories }) => 
           onChange={(v) => v ? setCategory(categories.nameKey[v] ?? "") : "" }
         />
       </Paper>
-      {(isLoading || isRefetching) ? (
-        <Text>Loading</Text>
-      ) : (
-        <>
-          <SimpleGrid
-            cols={{ base: 1, sm: 2, md: 3 }}
-          >
-            {data.models.map((model) => (
-              <Center key={model.id}>
-                <ModelCard description={model.description} id={model.id} title={model.title} category={model.category?.name} />
-              </Center>
-              ))}
-          </SimpleGrid>
-          <Center p="sm" m="sm">
-            <Pagination total={data.pages} value={page} onChange={(v) => setPage(v)} />
-          </Center>
-        </>
-      )}
+      <Box pos="relative">
+        <SimpleGrid
+          cols={{ base: 1, sm: 2, md: 3 }}
+        >
+          {(isLoading || isRefetching) ? (
+            Array.from(Array(env.NEXT_PUBLIC_PER_PAGE).keys()).map((_i, key) => (
+              <ModelCard key={key} description="Loading" id="loading" title="Loading" />
+            ))
+          ) : (
+            data.models.map((model) => (
+              <ModelCard key={model.id} description={model.description} id={model.id} title={model.title} category={model.category?.name} />
+            ))
+          )}
+        </SimpleGrid>
+        <Center p="sm" m="sm">
+          <Pagination total={data.pages} value={page} onChange={(v) => setPage(v)} />
+        </Center>
+        <LoadingOverlay visible={isLoading || isRefetching} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+      </Box>
     </>
   );
 };
