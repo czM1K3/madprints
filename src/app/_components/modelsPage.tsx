@@ -4,9 +4,9 @@ import React, { useEffect, useState, type FC } from "react";
 import { ModelCard } from "./card";
 import { Box, Center, LoadingOverlay, Pagination, Paper, Select, SimpleGrid, Text, TextInput } from "@mantine/core";
 import { api } from "~/trpc/react";
-import { type KeyValue } from "../page";
 import { useDebouncedValue } from "@mantine/hooks";
 import { env } from "~/env";
+import { type KeyValue } from "~/server/api/routers/public";
 
 type ModelsPageProps = {
   initialData: {
@@ -26,9 +26,10 @@ type ModelsPageProps = {
     keyName: KeyValue;
     nameKey: KeyValue;
   };
+  userId?: string;
 };
 
-export const ModelsPage: FC<ModelsPageProps> = ({ initialData, categories }) => {
+export const ModelsPage: FC<ModelsPageProps> = ({ initialData, categories, userId }) => {
   const [page, setPage] = useState(1);
   const [searchCurrent, setSearchCurrent] = useState("");
   const [search] = useDebouncedValue(searchCurrent, 500);
@@ -38,6 +39,7 @@ export const ModelsPage: FC<ModelsPageProps> = ({ initialData, categories }) => 
     page,
     category: category || null,
     search: search || null,
+    user: userId ?? null,
   }, {
     initialData,
     initialDataUpdatedAt: 0,

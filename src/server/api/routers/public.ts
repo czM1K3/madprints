@@ -6,6 +6,8 @@ import {
 import e from "e";
 import { env } from "~/env";
 
+export type KeyValue = Record<string, string>;
+
 export const publicRouter = createTRPCRouter({
   modelsPage: publicProcedure
     .input(z.object({
@@ -139,6 +141,32 @@ export const publicRouter = createTRPCRouter({
       name: true,
       order_by: category.name,
     }));
-    return await query.run(ctx.edgedb);
+    const result = await query.run(ctx.edgedb);
+    return {
+      names: ["None", ...result.map(({ name }) => name)],
+      keyName: result.reduce((categories, current) => {
+        categories[current.id] = current.name;
+        return categories;
+      }, { "": "None" } as KeyValue),
+      nameKey: result.reduce((categories, current) => {
+        categories[current.name] = current.id;
+        return categories;
+      }, { "None": "" } as KeyValue),
+    };
+  }),
+
+  userPage: publicProcedure.input(z.object({
+    id: z.string().uuid(),
+  })).query(async ({ ctx, input }) => {
+    const query = e.params({
+      id: e.uuid
+    }, (params) => e.select(e.User, (user) => ({
+      id: true,
+      name: true,
+      filter_single: e.op(user.id, "=", params.id),
+    })));
+    return await query.run(ctx.edgedb, {
+      id: input.id,
+    });
   }),
 });
