@@ -11,13 +11,13 @@ import { env } from "~/env";
 type ModelsPageProps = {
   initialData: {
     models: {
+      id: string;
+      description: string;
+      title: string;
+      category: {
         id: string;
-        description: string;
-        title: string;
-        category: {
-          id: string;
-          name: string;
-        } | null;
+        name: string;
+      } | null;
     }[];
     pages: number;
   };

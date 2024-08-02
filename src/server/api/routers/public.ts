@@ -10,8 +10,9 @@ export const publicRouter = createTRPCRouter({
   modelsPage: publicProcedure
     .input(z.object({
       page: z.number().min(1),
-      search: z.string().nullable(),
-      category: z.string().uuid().nullable(),
+      search: z.string().nullable().default(null),
+      category: z.string().uuid().nullable().default(null),
+      user: z.string().uuid().nullable().default(null),
     }))
     .query(async ({ ctx, input }) => {
       const perPage = env.NEXT_PUBLIC_PER_PAGE;
@@ -30,56 +31,42 @@ export const publicRouter = createTRPCRouter({
             expression: model.created_at,
             direction: e.DESC,
           },
-          filter: (input.category ? ( // I hate it too, but for now it's good enough
-            input.search ? (
+          filter: e.all(e.array_unpack(e.array([
+            e.op(e.int32(1), "=", e.int32(1)),
+            ...(input.search ? [
               e.op(
-                e.op(
-                  e.op(model.title, "ilike", e.str(`%${input.search}%`)),
-                  "or",
-                  e.op(model.description, "ilike", e.str(`%${input.search}%`)),
-                ),
-                "and",
-                e.op(model.category.id, "=", e.uuid(input.category))
-              )
-            ) : (
-              e.op(model.category.id, "=", e.uuid(input.category))
-            )
-          ) : (
-              input.search ? (
-                e.op(
                 e.op(model.title, "ilike", e.str(`%${input.search}%`)),
                 "or",
-                e.op(model.description, "ilike", e.str(`%${input.search}%`)),
+                e.op(model.description, "ilike", e.str(`%${input.search}%`))
               )
-            ) : undefined
-          )),
+            ]:[]),
+            ...(input.category ? [
+              e.op(model.category.id, "?=", e.uuid(input.category)),
+            ]:[]),
+            ...(input.user ? [
+              e.op(model.user.id, "=", e.uuid(input.user)),
+            ]:[]),
+          ]))),
         }))),
         pages: e.math.ceil(
           e.op(
             e.count(e.select(e.Model, (model) => ({
-              filter: (input.category ? ( // But it's there twice...
-                input.search ? (
+              filter: e.all(e.array_unpack(e.array([
+                e.op(e.int32(1), "=", e.int32(1)),
+                ...(input.search ? [
                   e.op(
-                    e.op(
-                      e.op(model.title, "ilike", e.str(`%${input.search}%`)),
-                      "or",
-                      e.op(model.description, "ilike", e.str(`%${input.search}%`)),
-                    ),
-                    "and",
-                    e.op(model.category.id, "=", e.uuid(input.category))
-                  )
-                ) : (
-                  e.op(model.category.id, "=", e.uuid(input.category))
-                )
-              ) : (
-                  input.search ? (
-                    e.op(
                     e.op(model.title, "ilike", e.str(`%${input.search}%`)),
                     "or",
-                    e.op(model.description, "ilike", e.str(`%${input.search}%`)),
+                    e.op(model.description, "ilike", e.str(`%${input.search}%`))
                   )
-                ) : undefined
-              )),
+                ]:[]),
+                ...(input.category ? [
+                  e.op(model.category.id, "?=", e.uuid(input.category)),
+                ]:[]),
+                ...(input.user ? [
+                  e.op(model.user.id, "=", e.uuid(input.user)),
+                ]:[]),
+              ]))),
             }))),
             "/",
             perPage

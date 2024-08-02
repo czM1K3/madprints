@@ -4,11 +4,7 @@ import { ModelsPage } from "./_components/modelsPage";
 export type KeyValue = Record<string, string>;
 
 const Home = async () => {
-  const models = await api.public.modelsPage({
-    page: 1,
-    category: null,
-    search: null,
-  });
+  const models = await api.public.modelsPage({ page: 1 });
   const categoriesRaw = await api.public.categories();
   const categories = {
     names: ["None", ...categoriesRaw.map(({ name }) => name)],
