@@ -63,8 +63,10 @@ export const modelRouter = createTRPCRouter({
         ...res,
         user: undefined,
       };
+    } else if (!res) {
+      throw new TRPCError({message: "Model no found", code: "NOT_FOUND" });
     } else {
-      return null;
+      throw new TRPCError({message: "Wrong user", code: "UNAUTHORIZED" });
     }
   }),
 
@@ -125,8 +127,10 @@ export const modelRouter = createTRPCRouter({
         id: res.id,
         iteration: res.iterations[0]!,
       };
+    } else if (!res) {
+      throw new TRPCError({message: "Model no found", code: "NOT_FOUND" });
     } else {
-      return null;
+      throw new TRPCError({message: "Wrong user", code: "UNAUTHORIZED" });
     }
   }),
 

@@ -1,9 +1,13 @@
 import React from "react";
-import { type NextPage } from "next";
+import { type Metadata, type NextPage } from "next";
 import { notFound } from "next/navigation";
 import { api } from "~/trpc/server";
 import { Paper } from "@mantine/core";
 import { EditModel } from "./_components/edit";
+
+export const metadata: Metadata = {
+  title: "Edit model | MadPrints",
+};
 
 type EditPageProps = {
   params: {
