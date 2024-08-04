@@ -8,6 +8,7 @@ export const modelRouter = createTRPCRouter({
     title: z.string(),
     description: z.string(),
     code: z.string(),
+    category: z.string().uuid().nullable(),
     parameters: z.array(z.object({
       name: z.string(),
       datatype: z.enum([ "Number", "Boolean", "String"]),
@@ -22,6 +23,11 @@ export const modelRouter = createTRPCRouter({
         user: e.select(e.User, (user) =>({
           filter_single: e.op(user.id, "=", e.uuid(ctx.session.user.id))
         })),
+        category: input.category ? (
+          e.select(e.Category, (category) => ({
+            filter_single: e.op(category.id, "=", e.uuid(input.category!))
+          }))
+        ) : null,
       }).run(edgedb);
       const { id: modelIterationId } = await e.insert(e.ModelIteration, {
         code: input.code,
@@ -53,6 +59,9 @@ export const modelRouter = createTRPCRouter({
       id: true,
       title: true,
       description: true,
+      category: {
+        id: true,
+      },
       user: {
         id: true,
       },
@@ -74,6 +83,7 @@ export const modelRouter = createTRPCRouter({
     id: z.string().uuid(),
     title: z.string(),
     description: z.string(),
+    category: z.string().uuid().nullable(),
   })).mutation(async ({ ctx, input }) => {
     const res = await e.select(e.Model, (model) => ({
       user: {
@@ -92,6 +102,11 @@ export const modelRouter = createTRPCRouter({
       set: {
         title: input.title,
         description: input.description,
+        category: input.category ? (
+          e.select(e.Category, (category) => ({
+            filter_single: e.op(category.id, "=", e.uuid(input.category!))
+          }))
+        ) : null,
       },
     })).run(ctx.edgedb);
   }),

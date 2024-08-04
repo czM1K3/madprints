@@ -4,6 +4,7 @@ import { Box, Button, LoadingOverlay } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
 import React, { useState, type FC } from "react";
+import { type Categories } from "~/app/_types/categories";
 import { ModelBase } from "~/app/create/_components/modelBase";
 import { api } from "~/trpc/react";
 
@@ -11,11 +12,14 @@ type EditModeProps = {
   id: string;
   title: string;
   description: string;
+  category?: string;
+  categories: Categories;
 };
 
-export const EditModel: FC<EditModeProps> = ({ id, ...props}) => {
+export const EditModel: FC<EditModeProps> = ({ id, categories, ...props}) => {
   const [title, setTitle] = useState(props.title);
   const [description, setDescription] = useState(props.description);
+  const [category, setCategory] = useState(props.category ?? "");
 
   const mutation = api.model.edit.useMutation();
   const router = useRouter();
@@ -28,6 +32,7 @@ export const EditModel: FC<EditModeProps> = ({ id, ...props}) => {
         id,
         title,
         description,
+        category: category || null,
       });
       notifications.show({
         title: "Success",
@@ -47,7 +52,7 @@ export const EditModel: FC<EditModeProps> = ({ id, ...props}) => {
 
   return (
     <Box pos="relative">
-      <ModelBase isEditing title={title} setTitle={setTitle} description={description} setDescription={setDescription} />
+      <ModelBase isEditing title={title} setTitle={setTitle} description={description} setDescription={setDescription} category={category} setCategory={setCategory} categories={categories} />
       <Button onClick={() => submit()}>Update</Button>
       <LoadingOverlay visible={isSending} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
     </Box>

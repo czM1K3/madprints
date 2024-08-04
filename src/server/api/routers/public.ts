@@ -5,8 +5,7 @@ import {
 } from "~/server/api/trpc";
 import e from "e";
 import { env } from "~/env";
-
-export type KeyValue = Record<string, string>;
+import { type KeyValue } from "~/app/_types/categories";
 
 export const publicRouter = createTRPCRouter({
   modelsPage: publicProcedure

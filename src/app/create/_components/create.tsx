@@ -8,11 +8,17 @@ import { Box, Button, LoadingOverlay } from "@mantine/core";
 import { api } from "~/trpc/react";
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
+import { type Categories } from "~/app/_types/categories";
 
-export const CreateModel: FC = () => {
+type CreateModelProps = {
+  categories: Categories;
+};
+
+export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [code, setCode] = useState("");
+  const [category, setCategory] = useState("");
   const [parameters, setParameters] = useState<ParameterInput[]>([]);
 
   const mutation = api.model.create.useMutation();
@@ -26,6 +32,7 @@ export const CreateModel: FC = () => {
         title,
         description,
         code,
+        category: category || null,
         parameters,
       });
       notifications.show({
@@ -46,7 +53,7 @@ export const CreateModel: FC = () => {
 
   return (
     <Box pos="relative">
-      <ModelBase title={title} setTitle={setTitle} description={description} setDescription={setDescription} />
+      <ModelBase title={title} setTitle={setTitle} description={description} setDescription={setDescription} categories={categories} category={category} setCategory={setCategory} />
       <ModelIteration code={code} setCode={setCode} parameters={parameters} setParameters={setParameters} />
       <Button onClick={() => submit()}>Create</Button>
       <LoadingOverlay visible={isSending} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />

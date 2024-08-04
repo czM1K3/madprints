@@ -20,9 +20,10 @@ const EditPage: NextPage<EditPageProps> = async ({ params }) => {
   if (!modelData) {
     return notFound();
   }
+  const categories = await api.public.categories();
   return (
     <Paper>
-      <EditModel description={modelData.description} id={modelData.id} title={modelData.title} />
+      <EditModel description={modelData.description} id={modelData.id} title={modelData.title} categories={categories} category={modelData.category?.id} />
     </Paper>
   );
 };

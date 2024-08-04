@@ -6,7 +6,7 @@ import { Box, Center, LoadingOverlay, Pagination, Paper, Select, SimpleGrid, Tex
 import { api } from "~/trpc/react";
 import { useDebouncedValue } from "@mantine/hooks";
 import { env } from "~/env";
-import { type KeyValue } from "~/server/api/routers/public";
+import { type Categories } from "../_types/categories";
 
 type ModelsPageProps = {
   initialData: {
@@ -21,11 +21,7 @@ type ModelsPageProps = {
     }[];
     pages: number;
   };
-  categories: {
-    names: string[];
-    keyName: KeyValue;
-    nameKey: KeyValue;
-  };
+  categories: Categories;
   userId?: string;
 };
 
