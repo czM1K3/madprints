@@ -20,6 +20,7 @@ export const EditModel: FC<EditModeProps> = ({ id, categories, ...props}) => {
   const [title, setTitle] = useState(props.title);
   const [description, setDescription] = useState(props.description);
   const [category, setCategory] = useState(props.category ?? "");
+  const [files, setFiles] = useState<File[]>([]);
 
   const mutation = api.model.edit.useMutation();
   const router = useRouter();
@@ -52,7 +53,7 @@ export const EditModel: FC<EditModeProps> = ({ id, categories, ...props}) => {
 
   return (
     <Box pos="relative">
-      <ModelBase isEditing title={title} setTitle={setTitle} description={description} setDescription={setDescription} category={category} setCategory={setCategory} categories={categories} />
+      <ModelBase isEditing title={title} setTitle={setTitle} description={description} setDescription={setDescription} category={category} setCategory={setCategory} categories={categories} files={files} setFiles={setFiles} />
       <Button onClick={() => submit()}>Update</Button>
       <LoadingOverlay visible={isSending} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
     </Box>

@@ -20,6 +20,7 @@ export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
   const [code, setCode] = useState("");
   const [category, setCategory] = useState("");
   const [parameters, setParameters] = useState<ParameterInput[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
 
   const mutation = api.model.create.useMutation();
   const router = useRouter();
@@ -53,7 +54,7 @@ export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
 
   return (
     <Box pos="relative">
-      <ModelBase title={title} setTitle={setTitle} description={description} setDescription={setDescription} categories={categories} category={category} setCategory={setCategory} />
+      <ModelBase title={title} setTitle={setTitle} description={description} setDescription={setDescription} categories={categories} category={category} setCategory={setCategory} files={files} setFiles={setFiles} />
       <ModelIteration code={code} setCode={setCode} parameters={parameters} setParameters={setParameters} />
       <Button onClick={() => submit()}>Create</Button>
       <LoadingOverlay visible={isSending} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
