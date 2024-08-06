@@ -9,6 +9,7 @@ import { api } from "~/trpc/react";
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
 import { type Categories } from "~/app/_types/categories";
+import axios from "axios";
 
 type CreateModelProps = {
   categories: Categories;
@@ -35,12 +36,16 @@ export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
         code,
         category: category || null,
         parameters,
+        images: files.map((file) => file.name),
       });
+      for (const [i, file] of files.entries()) {
+        await axios.put(res.presignedUrls[i]!, file);
+      }
       notifications.show({
         title: "Success",
         message: "Model was successfully created"
       });
-      router.push(`/models/${res}`);
+      router.push(`/models/${res.id}`);
     } catch (e) {
       notifications.show({
         title: "Something went wrong",

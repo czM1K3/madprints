@@ -1,4 +1,4 @@
-import { Button, Center, Image, Paper, Title, TypographyStylesProvider } from "@mantine/core";
+import { Button, Paper, Title, TypographyStylesProvider } from "@mantine/core";
 import { notFound } from "next/navigation";
 import { type FC } from "react";
 import { api, HydrateClient } from "~/trpc/server";
@@ -8,6 +8,7 @@ import { auth } from "~/server/auth";
 import Link from "next/link";
 import type { Metadata, ResolvingMetadata } from "next";
 import Markdown from "markdown-to-jsx";
+import { ImagesCarousel } from "./_components/images";
 
 type ModelPageProps = {
   params: {
@@ -35,17 +36,7 @@ const ModelPage: FC<ModelPageProps> = async ({ params }) => {
           <Title>{modelData.title}</Title>
           <Title order={2} c="gray" size={20}>{modelData.created_at.toLocaleString("en-us")}</Title>
           <UserInfo id={modelData.user.id} image={modelData.user.image} name={modelData.user.name} />
-          <Center>
-            <Image
-              radius="md"
-              src="/bg-8.png"
-              alt={`Image of ${modelData.title}`}
-              mah="60vh"
-              maw="100%"
-              w="auto"
-              fit="contain"
-            />
-          </Center>
+          <ImagesCarousel images={modelData.images} />
           <TypographyStylesProvider>
             <Markdown>{modelData.description}</Markdown>
           </TypographyStylesProvider>

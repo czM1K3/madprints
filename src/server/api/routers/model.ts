@@ -2,6 +2,8 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import e from "e";
 import { TRPCError } from "@trpc/server";
+import { env } from "~/env";
+import { v4 as uuidv4 } from 'uuid';
 
 export const modelRouter = createTRPCRouter({
   create: protectedProcedure.input(z.object({
@@ -15,8 +17,27 @@ export const modelRouter = createTRPCRouter({
       default_value: z.string(),
       description: z.string().nullable(),
     })),
+    images: z.array(z.string()).max(10),
   })).mutation(async ({ ctx, input }) => {
-    const modelId = await ctx.edgedb.transaction(async (edgedb) => {
+    const res = await ctx.edgedb.transaction(async (edgedb) => {
+      const images = await Promise.all(input.images.map(async (image) => {
+        const uuid = uuidv4();
+        const splitted = image.split(".");
+        if (splitted.length < 2) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Image doesn't have extension",
+          })
+        }
+        const extension = splitted[splitted.length - 1];
+        const newFileName = `${uuid}.${extension}`;
+
+        const presignedUrl = await ctx.minio.presignedPutObject(env.MINIO_BUCKET, newFileName, 60);
+        return {
+          fileName: newFileName,
+          presignedUrl,
+        };
+      }));
       const { id : modelId } = await e.insert(e.Model, {
         title: input.title,
         description: input.description,
@@ -28,6 +49,7 @@ export const modelRouter = createTRPCRouter({
             filter_single: e.op(category.id, "=", e.uuid(input.category!))
           }))
         ) : null,
+        images: images.map((image) => image.fileName),
       }).run(edgedb);
       const { id: modelIterationId } = await e.insert(e.ModelIteration, {
         code: input.code,
@@ -47,9 +69,13 @@ export const modelRouter = createTRPCRouter({
           })),
         }).run(edgedb);
       }
-      return modelId;
+
+      return {
+        id: modelId,
+        presignedUrls: images.map((image) => image.presignedUrl),
+      };
     });
-    return modelId;
+    return res;
   }),
 
   editProps: protectedProcedure.input(z.object({

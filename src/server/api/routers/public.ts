@@ -26,6 +26,7 @@ export const publicRouter = createTRPCRouter({
             id: true,
             name: true,
           },
+          images: true,
           limit: env.NEXT_PUBLIC_PER_PAGE,
           offset: e.op(e.op(input.page, "-", e.int32(1)), "*", perPage),
           order_by: {
@@ -111,6 +112,7 @@ export const publicRouter = createTRPCRouter({
           name: true,
           image: true,
         },
+        images: true,
         filter_single: e.op(model.id, "=", params.id),
       })));
       return await query.run(ctx.edgedb, {

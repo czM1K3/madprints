@@ -14,6 +14,7 @@ type ModelsPageProps = {
       id: string;
       description: string;
       title: string;
+      images: string[];
       category: {
         id: string;
         name: string;
@@ -77,7 +78,7 @@ export const ModelsPage: FC<ModelsPageProps> = ({ initialData, categories, userI
             ))
           ) : (
             data.models.map((model) => (
-              <ModelCard key={model.id} description={model.description} id={model.id} title={model.title} category={model.category?.name} />
+              <ModelCard key={model.id} description={model.description} id={model.id} title={model.title} category={model.category?.name} image={model.images[0] ?? undefined} />
             ))
           )}
         </SimpleGrid>

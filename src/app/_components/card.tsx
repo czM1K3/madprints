@@ -1,21 +1,22 @@
-import { Badge, Button, Card, CardSection, Text } from "@mantine/core";
-import Image from "next/image";
+import { Badge, Button, Card, CardSection, Image, Text } from "@mantine/core";
 import Link from "next/link";
 import React, { type FC } from "react";
+import { env } from "~/env";
 
 type ModelCardProps = {
   id: string;
   title: string;
   description: string;
   category?: string;
+  image?: string;
 };
 
-export const ModelCard: FC<ModelCardProps> = ({ description, id, title, category }) => {
+export const ModelCard: FC<ModelCardProps> = ({ description, id, title, category, image }) => {
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       <CardSection>
         <Image
-          src="/bg-8.png"
+          src={image ? `${env.NEXT_PUBLIC_IMAGE_PREFIX}${image}` : "/bg-8.png"}
           alt={`Image of ${title}`}
           width={400}
           height={200}

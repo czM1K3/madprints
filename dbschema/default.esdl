@@ -11,6 +11,7 @@ module default {
             on target delete delete source;
         };
         link category -> Category;
+        required images: array<str>;
     }
 
     type ModelIteration {
