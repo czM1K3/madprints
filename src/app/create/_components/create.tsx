@@ -10,6 +10,7 @@ import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
 import { type Categories } from "~/app/_types/categories";
 import axios from "axios";
+import { v4 as uuidv4 } from 'uuid';
 
 type CreateModelProps = {
   categories: Categories;
@@ -58,10 +59,33 @@ export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
     }
   }
 
+  const screenshot = async () => {
+    const canvas = document.querySelector('canvas');
+    if (!canvas) {
+      notifications.show({
+        title: "Something went wrong",
+        message: "Unable to find preview",
+        color: "red"
+      });
+      return;
+    }
+    const base64 = canvas.toDataURL("image/png");
+    const data = await fetch(base64);
+    const blob = await data.blob();
+    const file = new File([blob], `${uuidv4()}.png`, {
+      type: "image/png",
+    });
+    setFiles((files) => [...(files ?? []), file]);
+    notifications.show({
+      title: "Success",
+      message: "Added screenshot successfully"
+    });
+  };
+
   return (
     <Box pos="relative">
       <ModelBase title={title} setTitle={setTitle} description={description} setDescription={setDescription} categories={categories} category={category} setCategory={setCategory} files={files} setFiles={setFiles} images={[]} />
-      <ModelIteration code={code} setCode={setCode} parameters={parameters} setParameters={setParameters} />
+      <ModelIteration code={code} setCode={setCode} parameters={parameters} setParameters={setParameters} createScreenshot={screenshot} />
       <Button onClick={() => submit()}>Create</Button>
       <LoadingOverlay visible={isSending} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
     </Box>

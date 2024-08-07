@@ -17,6 +17,7 @@ type Iteration = {
 
 type ModelGeneratorProps = {
   iterations: Iteration[];
+  createScreenshot?: () => Promise<void>;
 };
 
 type GeneratorOutput = {
@@ -36,7 +37,7 @@ const getIterationDefaultParams = (iteration: Iteration) => {
   return obj;
 }
 
-export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
+export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScreenshot }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [outputs, setOutputs] = useState<string[]>([]);
@@ -207,12 +208,19 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations }) => {
           bottom="0"
           p=""
         >
+        {createScreenshot ? (
+          <Button
+            onClick={() => createScreenshot()}
+            disabled={!modelUrl}
+          >Create screenshot</Button>
+        ) : (<></>)}
         <Button
-            onClick={() => setShowOutputs(true)}
-            disabled={outputs.length === 0}
-          >Show logs</Button>
+          m="1rem"
+          onClick={() => setShowOutputs(true)}
+          disabled={outputs.length === 0}
+        >Show logs</Button>
         <Button
-            m="1rem"
+            mr="1rem"
             onClick={() => download()}
             disabled={!modelUrl}
           >Download</Button>
