@@ -23,7 +23,7 @@ const EditPage: NextPage<EditPageProps> = async ({ params }) => {
   const categories = await api.public.categories();
   return (
     <Paper>
-      <EditModel description={modelData.description} id={modelData.id} title={modelData.title} categories={categories} category={modelData.category?.id} />
+      <EditModel description={modelData.description} id={modelData.id} title={modelData.title} categories={categories} category={modelData.category?.id} images={modelData.images} />
     </Paper>
   );
 };

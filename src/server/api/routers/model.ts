@@ -91,6 +91,7 @@ export const modelRouter = createTRPCRouter({
       user: {
         id: true,
       },
+      images: true,
       filter_single: e.op(model.id, "=", e.uuid(input.id)),
     })).run(ctx.edgedb);
     if (res && res.user.id === ctx.session.user.id) {

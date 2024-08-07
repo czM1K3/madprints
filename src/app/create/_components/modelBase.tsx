@@ -1,7 +1,8 @@
-import { Button, FileButton, Image, Select, Textarea, TextInput, Title } from "@mantine/core";
+import { Box, Button, FileButton, Image, LoadingOverlay, Select, Textarea, TextInput, Title } from "@mantine/core";
 import React, { type Dispatch, type SetStateAction, type FC, useState, useEffect } from "react";
 import { type Categories } from "~/app/_types/categories";
 import { Carousel, CarouselSlide } from '@mantine/carousel';
+import { env } from "~/env";
 
 type ModelBaseProps = {
   isEditing?: true,
@@ -12,8 +13,9 @@ type ModelBaseProps = {
   category: string;
   setCategory: Dispatch<SetStateAction<string>>;
   categories: Categories;
-  files: File[];
-  setFiles: Dispatch<SetStateAction<File[]>>;
+  files: File[] | null;
+  setFiles: Dispatch<SetStateAction<File[] | null>>;
+  images: string[];
 };
 
 const toBase64 = (file: File): Promise<string | null> => new Promise((resolve, reject) => {
@@ -23,10 +25,11 @@ const toBase64 = (file: File): Promise<string | null> => new Promise((resolve, r
   reader.onerror = reject;
 });
 
-export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, description, setDescription, category, setCategory, categories, files, setFiles }) => {
+export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, description, setDescription, category, setCategory, categories, files, setFiles, images }) => {
   const [previews, setPreviews] = useState<string[]>([]);
   useEffect(() => {
     (async () => {
+      if (!files) return;
       const arr: string[] = [];
       for (const file of files) {
         const res = await toBase64(file);
@@ -35,6 +38,20 @@ export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, desc
       setPreviews(arr);
     })().catch(() => console.log("Error"));
   }, [files]);
+
+  const [isDownloading, setIsDownloading] = useState(false);
+  const fetchImages = async () => {
+    setIsDownloading(true);
+    const newFiles = await Promise.all(images.map(async (image) => {
+      const data = await fetch(`${env.NEXT_PUBLIC_IMAGE_PREFIX}${image}`);
+      const blob = await data.blob();
+      const file = new File([blob], image, {
+        type: data.type || "image/jpeg",
+      });
+      return file;
+    }));
+    setFiles(newFiles);
+  };
 
   return (
     <>
@@ -60,32 +77,42 @@ export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, desc
         value={categories.keyName[category]}
         onChange={(v) => v ? setCategory(categories.nameKey[v] ?? "") : "" }
       />
-      <Title order={2}>Images {`(${files.length}/10)`}</Title>
-      {files.length < 10 ? (
-        <FileButton onChange={(f) => f && setFiles((ff) => [...ff, f])} accept="image/png,image/jpeg">
-          {(props) => <Button {...props}>Add image</Button>}
-        </FileButton>
-      ) : <></>}
-      {previews.length ? (
-        <Carousel height={400} slideGap="md" pt="sm" pb="sm">
-          {previews.map((preview, i) => (
-            <CarouselSlide key={i}>
-              <Button pos="absolute" color="red" onClick={() => setFiles((files) => {
-                const copy = [...files];
-                copy.splice(i, 1);
-                return copy;
-              })}>Remove</Button>
-              <Image
-                src={preview}
-                alt={`Preview image ${i + 1}`}
-                fit="contain"
-                w="100%"
-                h="100%"
-              />
-            </CarouselSlide>
-          ))}
-        </Carousel>
-      ):<></>}
-      </>
+      {files !== null ? (
+        <>
+          <Title order={2}>Images {`(${files.length}/10)`}</Title>
+          {files.length < 10 ? (
+            <FileButton onChange={(f) => f && setFiles((ff) => [...(ff ?? []), f])} accept="image/png,image/jpeg">
+              {(props) => <Button {...props}>Add image</Button>}
+            </FileButton>
+          ) : <></>}
+          {previews.length ? (
+            <Carousel height={400} slideGap="md" pt="sm" pb="sm">
+              {previews.map((preview, i) => (
+                <CarouselSlide key={i}>
+                  <Button pos="absolute" color="red" onClick={() => setFiles((files) => {
+                    const copy = [...(files ?? [])];
+                    copy.splice(i, 1);
+                    return copy;
+                  })}>Remove</Button>
+                  <Image
+                    src={preview}
+                    alt={`Preview image ${i + 1}`}
+                    fit="contain"
+                    w="100%"
+                    h="100%"
+                  />
+                </CarouselSlide>
+              ))}
+            </Carousel>
+          ):<></>}
+        </>
+      ) : (
+        <Box pos="relative">
+          <Title order={2}>Images - no changes</Title>
+          <Button m="sm" color="orange" onClick={() => fetchImages()}>I want to change images</Button>
+          <LoadingOverlay visible={isDownloading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+        </Box>
+      )}
+    </>
   );
 }
