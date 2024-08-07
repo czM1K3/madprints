@@ -2,8 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import e from "e";
 import { TRPCError } from "@trpc/server";
-import { env } from "~/env";
-import { v4 as uuidv4 } from 'uuid';
+import { saveImages, removeImages } from "~/server/strorage";
 
 export const modelRouter = createTRPCRouter({
   create: protectedProcedure.input(z.object({
@@ -17,27 +16,10 @@ export const modelRouter = createTRPCRouter({
       default_value: z.string(),
       description: z.string().nullable(),
     })),
-    images: z.array(z.string()).max(10),
+    images: z.array(z.string()).min(1).max(10),
   })).mutation(async ({ ctx, input }) => {
     const res = await ctx.edgedb.transaction(async (edgedb) => {
-      const images = await Promise.all(input.images.map(async (image) => {
-        const uuid = uuidv4();
-        const splitted = image.split(".");
-        if (splitted.length < 2) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Image doesn't have extension",
-          })
-        }
-        const extension = splitted[splitted.length - 1];
-        const newFileName = `${uuid}.${extension}`;
-
-        const presignedUrl = await ctx.minio.presignedPutObject(env.MINIO_BUCKET, newFileName, 60);
-        return {
-          fileName: newFileName,
-          presignedUrl,
-        };
-      }));
+      const images = await saveImages(ctx.minio, input.images);
       const { id : modelId } = await e.insert(e.Model, {
         title: input.title,
         description: input.description,
@@ -111,11 +93,13 @@ export const modelRouter = createTRPCRouter({
     title: z.string(),
     description: z.string(),
     category: z.string().uuid().nullable(),
+    images: z.array(z.string()).min(1).max(10).nullable(),
   })).mutation(async ({ ctx, input }) => {
     const res = await e.select(e.Model, (model) => ({
       user: {
         id: true,
       },
+      images: true,
       filter_single: e.op(model.id, "=", e.uuid(input.id)),
     })).run(ctx.edgedb);
     if (!res) {
@@ -124,11 +108,14 @@ export const modelRouter = createTRPCRouter({
     if (res.user.id !== ctx.session.user.id) {
       throw new TRPCError({message: "Wrong user", code: "UNAUTHORIZED" });
     }
+    const newImages = input.images === null ? null : await saveImages(ctx.minio, input.images);
+
     await e.update(e.Model, (model) => ({
       filter: e.op(model.id, "=", e.uuid(input.id)),
       set: {
         title: input.title,
         description: input.description,
+        images: newImages === null ? undefined : newImages.map((image) => image.fileName),
         category: input.category ? (
           e.select(e.Category, (category) => ({
             filter_single: e.op(category.id, "=", e.uuid(input.category!))
@@ -136,6 +123,12 @@ export const modelRouter = createTRPCRouter({
         ) : null,
       },
     })).run(ctx.edgedb);
+    if (newImages !== null) {
+      await removeImages(ctx.minio, res.images)
+    }
+    return {
+      presignedUrls: newImages?.map((image) => image.presignedUrl) ?? null,
+    };
   }),
 
   newIterationProps: protectedProcedure.input(z.object({

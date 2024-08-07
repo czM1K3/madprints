@@ -1,5 +1,7 @@
 import { env } from "~/env";
 import { Client } from "minio";
+import { v4 as uuidv4 } from 'uuid';
+import { TRPCError } from "@trpc/server";
 
 const globalForMinio = global as unknown as { minio: Client };
 
@@ -14,3 +16,30 @@ export const minio = globalForMinio.minio || new Client({
 if (env.NODE_ENV !== "production") globalForMinio.minio = minio;
 
 export default minio;
+
+export const saveImages = (minio: Client, images: string[]) => {
+  return Promise.all(images.map(async (image) => {
+    const uuid = uuidv4();
+    const splitted = image.split(".");
+    if (splitted.length < 2) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Image doesn't have extension",
+      })
+    }
+    const extension = splitted[splitted.length - 1];
+    const newFileName = `${uuid}.${extension}`;
+
+    const presignedUrl = await minio.presignedPutObject(env.MINIO_BUCKET, newFileName, 60);
+    return {
+      fileName: newFileName,
+      presignedUrl,
+    };
+  }));
+};
+
+export const removeImages = (minio: Client, images: string[]) => {
+  return Promise.all(images.map(async (image) => {
+    await minio.removeObject(env.MINIO_BUCKET, image);
+  }));
+};
