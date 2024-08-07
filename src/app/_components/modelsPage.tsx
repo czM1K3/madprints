@@ -53,7 +53,7 @@ export const ModelsPage: FC<ModelsPageProps> = ({ initialData, categories, userI
     );
   return (
     <>
-      <Paper p="sm">
+      <Paper pt="sm" pb="sm">
         <TextInput
           label="Search MadPrints"
           placeholder="Enter word to search for"
