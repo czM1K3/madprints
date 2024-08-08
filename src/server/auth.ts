@@ -1,9 +1,9 @@
 import NextAuth, { type DefaultSession } from "next-auth";
 // import DiscordProvider from "next-auth/providers/discord";
 import GitHubProvider from "next-auth/providers/github";
-import { EdgeDBAdapter } from "@auth/edgedb-adapter";
+// import { EdgeDBAdapter } from "@auth/edgedb-adapter";
+import { CustomAdapter } from "./auth-adapter";
 import edgedb from "./database";
-import { type Adapter } from "next-auth/adapters";
 
 import { env } from "~/env";
 
@@ -34,7 +34,8 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const { auth, handlers, signIn, signOut } = NextAuth({
-  adapter: EdgeDBAdapter(edgedb) as Adapter,
+  // adapter: EdgeDBAdapter(edgedb),
+  adapter: CustomAdapter(edgedb),
   // callbacks: {
   //   session: ({ session, user }) => ({
   //     ...session,
