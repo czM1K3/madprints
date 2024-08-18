@@ -75,7 +75,14 @@ export const publicRouter = createTRPCRouter({
           )
         ),
       });
-      return await query.run(ctx.edgedb);
+      const res = await query.run(ctx.edgedb);
+      return {
+        models: res.models.map((model) => ({
+          ...model,
+          images: model.images.map((image) => `${env.IMAGE_PREFIX}${image}`),
+        })),
+        pages: res.pages,
+      };
     }),
 
   modelPage: publicProcedure
@@ -115,9 +122,13 @@ export const publicRouter = createTRPCRouter({
         images: true,
         filter_single: e.op(model.id, "=", params.id),
       })));
-      return await query.run(ctx.edgedb, {
+      const res =  await query.run(ctx.edgedb, {
         id: input.id,
       });
+      return res ? {
+        ...res,
+        images: res.images.map((image) => `${env.IMAGE_PREFIX}${image}`)
+      } : null;
     }),
 
   modelTitle: publicProcedure

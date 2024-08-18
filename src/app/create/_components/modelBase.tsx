@@ -2,7 +2,6 @@ import { Box, Button, FileButton, Image, LoadingOverlay, Select, Textarea, TextI
 import React, { type Dispatch, type SetStateAction, type FC, useState, useEffect } from "react";
 import { type Categories } from "~/app/_types/categories";
 import { Carousel, CarouselSlide } from '@mantine/carousel';
-import { env } from "~/env";
 
 type ModelBaseProps = {
   isEditing?: true,
@@ -43,7 +42,7 @@ export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, desc
   const fetchImages = async () => {
     setIsDownloading(true);
     const newFiles = await Promise.all(images.map(async (image) => {
-      const data = await fetch(`${env.NEXT_PUBLIC_IMAGE_PREFIX}${image}`);
+      const data = await fetch(image);
       const blob = await data.blob();
       const file = new File([blob], image, {
         type: data.type || "image/jpeg",

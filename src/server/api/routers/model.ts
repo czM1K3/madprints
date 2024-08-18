@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import e from "e";
 import { TRPCError } from "@trpc/server";
 import { saveImages, removeImages } from "~/server/strorage";
+import { env } from "~/env";
 
 export const modelRouter = createTRPCRouter({
   create: protectedProcedure.input(z.object({
@@ -79,6 +80,7 @@ export const modelRouter = createTRPCRouter({
     if (res && res.user.id === ctx.session.user.id) {
       return {
         ...res,
+        images: res.images.map((image) => `${env.IMAGE_PREFIX}${image}`),
         user: undefined,
       };
     } else if (!res) {
