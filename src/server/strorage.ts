@@ -30,7 +30,8 @@ export const saveImages = (minio: Client, images: string[]) => {
     const extension = splitted[splitted.length - 1];
     const newFileName = `${uuid}.${extension}`;
 
-    const presignedUrl = await minio.presignedPutObject(env.MINIO_BUCKET, newFileName, 60);
+    const presignedUrlRaw = await minio.presignedPutObject(env.MINIO_BUCKET, newFileName, 60);
+    const presignedUrl = presignedUrlRaw.replace(/https?\:\/\/[a-zA-Z\-]*(\:[0-9]{1,5})?\/[a-zA-Z\-]*\//gm, env.IMAGE_PREFIX);
     return {
       fileName: newFileName,
       presignedUrl,
