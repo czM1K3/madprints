@@ -28,7 +28,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ghcr.io/czm1k3/minecraft-server-dashboard-3
+            ghcr.io/czm1k3/madprints
           tags: |
             type=raw,value=latest
             type=sha,enable=true,priority=100,prefix=,suffix=,format=short
