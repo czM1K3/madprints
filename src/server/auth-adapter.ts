@@ -3,9 +3,10 @@ import { type Client } from "edgedb";
 import e from "e";
 
 // @auth/edgedb-adapter is little bit buggy when updating session...
-export const CustomAdapter = (client: Client): Adapter => {
+export const CustomAdapter = (client: Client, logging = false): Adapter => {
   return {
     createUser: async ({ email, emailVerified, image, name }) => {
+      if (logging) console.log(1);
       const newUser = await e.insert(e.User, {
         email,
         emailVerified,
@@ -30,6 +31,7 @@ export const CustomAdapter = (client: Client): Adapter => {
       return res;
     },
     getUser: (id) => {
+      if (logging) console.log(2);
       return e.select(e.User, (user) => ({
         id: true,
         email: true,
@@ -40,16 +42,18 @@ export const CustomAdapter = (client: Client): Adapter => {
       })).run(client);
     },
     getUserByEmail: (email) => {
+      if (logging) console.log(3);
       return e.select(e.User, (user) => ({
         id: true,
         email: true,
         emailVerified: true,
         name: true,
         image: true,
-        filter_single: e.op(user.email, "=", e.uuid(email)),
+        filter_single: e.op(user.email, "=", e.str(email)),
       })).run(client);
     },
     getUserByAccount: async ({ providerAccountId, provider }) => {
+      if (logging) console.log(4);
       const res = await e.select(e.Account, (account) => ({
         user: {
           id: true,
@@ -59,7 +63,7 @@ export const CustomAdapter = (client: Client): Adapter => {
           image: true,
         },
         filter_single: e.op(
-          e.op(account.providerAccountId, "=", providerAccountId),
+          e.op(account.providerAccountId, "=", e.str(providerAccountId)),
           "and",
           e.op(account.provider, "=", provider)
         ),
@@ -67,6 +71,7 @@ export const CustomAdapter = (client: Client): Adapter => {
       return res?.user ?? null;
     },
     updateUser: async ({ id, email, emailVerified, image, name }) => {
+      if (logging) console.log(5);
       const updatedUser = await e.update(e.User, (user) => ({
         set: {
           email,
@@ -97,6 +102,7 @@ export const CustomAdapter = (client: Client): Adapter => {
       return res;
     },
     deleteUser: async (userId) => {
+      if (logging) console.log(6);
       await e.delete(e.User, (user) => ({
         filter: e.op(user.id, "=", e.uuid(userId)),
       })).run(client);
@@ -114,6 +120,7 @@ export const CustomAdapter = (client: Client): Adapter => {
       id_token,
       session_state,
     }) => {
+      if (logging) console.log(7);
       await e.insert(e.Account, {
         type,
         provider,
@@ -131,15 +138,17 @@ export const CustomAdapter = (client: Client): Adapter => {
       }).run(client);
     },
     unlinkAccount: async ({providerAccountId, provider}) => {
+      if (logging) console.log(8);
       await e.delete(e.Account, (account) => ({
         filter: e.op(
-          e.op(account.providerAccountId, "=", providerAccountId),
+          e.op(account.providerAccountId, "=", e.str(providerAccountId)),
           "and",
           e.op(account.provider, "=", provider)
         ),
       })).run(client);
     },
     createSession: async ({ expires, sessionToken, userId }) => {
+      if (logging) console.log(9);
       const newSession = await e.insert(e.Session, {
         expires,
         sessionToken,
@@ -163,6 +172,7 @@ export const CustomAdapter = (client: Client): Adapter => {
       return res;
     },
     getSessionAndUser: async (sessionToken) => {
+      if (logging) console.log(10);
       const sessionAndUser = await e.select(e.Session, (session) => ({
         userId: true,
         id: true,
@@ -190,6 +200,7 @@ export const CustomAdapter = (client: Client): Adapter => {
       };
     },
     updateSession: async ({ sessionToken, expires, userId }) => {
+      if (logging) console.log(11);
       const updatedSession = await e.update(e.Session, (session2) => ({
         set: {
           sessionToken,
@@ -216,11 +227,13 @@ export const CustomAdapter = (client: Client): Adapter => {
       return res;
     },
     deleteSession: async (sessionToken) => {
+      if (logging) console.log(12);
       await e.delete(e.Session, (session) => ({
         filter_single: e.op(session.sessionToken, "=", sessionToken),
       })).run(client);
     },
     createVerificationToken: async ({ identifier, expires, token }) => {
+      if (logging) console.log(13);
       const newToken = await e.insert(e.VerificationToken, {
         identifier,
         expires: e.datetime(expires),
@@ -239,6 +252,7 @@ export const CustomAdapter = (client: Client): Adapter => {
       return res;
     },
     useVerificationToken: async ({ identifier, token }) => {
+      if (logging) console.log(14);
       const res = await e.select(e.VerificationToken, (verificationToken) => ({
         id: true,
         identifier: true,
@@ -252,7 +266,7 @@ export const CustomAdapter = (client: Client): Adapter => {
       })).run(client);
       if (res) {
         await e.delete(e.VerificationToken, (verificationToken) => ({
-          filter: e.op(verificationToken.id, "=", res.id),
+          filter: e.op(verificationToken.id, "=", e.uuid(res.id)),
         })).run(client);
         return {
           ...res,
