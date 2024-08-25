@@ -32,7 +32,7 @@ const ModelPage: FC<ModelPageProps> = async ({ params }) => {
   return (
     <HydrateClient>
       <main>
-        <Paper shadow="xs" p="sm" m="md">
+        <Paper shadow="xs" p="sm" mt="md" mb="md">
           <Title>{modelData.title}</Title>
           <Title order={2} c="gray" size={20}>{modelData.created_at.toLocaleString("en-us")}</Title>
           <UserInfo id={modelData.user.id} image={modelData.user.image} name={modelData.user.name} />

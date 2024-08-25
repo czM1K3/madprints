@@ -131,7 +131,7 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
   }
 
   return (
-    <Paper shadow="xs" p="sm" m="md" pos="relative">
+    <Paper shadow="xs" p="sm" mt="md" mb="md" pos="relative">
       <Accordion chevronPosition="right" variant="contained" defaultValue={iterations[0]?.id} onChange={iterationChange}>
         {iterations.map((iteration) => (
           <AccordionItem value={iteration.id} key={iteration.id}>
