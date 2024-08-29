@@ -4,21 +4,25 @@ import { Loader } from "@mantine/core";
 
 type EditorProps = {
   code: string;
-  setCode: Dispatch<SetStateAction<string>>;
+  setCode?: Dispatch<SetStateAction<string>>;
   colorScheme: string;
   langauge: "openscad" | "markdown";
   height?: number | string | undefined;
+  readOnly?: boolean;
 };
 
-const Editor: FC<EditorProps> = ({ code, colorScheme, setCode, langauge, height }) => {
+const Editor: FC<EditorProps> = ({ code, colorScheme, setCode, langauge, height, readOnly }) => {
   return (
     <Monaco
       height={height}
       defaultLanguage={langauge}
       value={code}
-      onChange={(e) => e && setCode(e)}
+      onChange={setCode && ((e) => e && setCode(e))}
       theme={colorScheme === "light" ? "light" : "vs-dark"}
       loading={<Loader />}
+      options={{
+        readOnly,
+      }}
     />
   );
 };

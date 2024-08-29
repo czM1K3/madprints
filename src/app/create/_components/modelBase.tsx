@@ -1,4 +1,4 @@
-import { Box, Button, FileButton, Image, LoadingOverlay, Select, Text, TextInput, Title } from "@mantine/core";
+import { Anchor, Box, Button, FileButton, Image, LoadingOverlay, Select, Text, TextInput, Title } from "@mantine/core";
 import React, { type Dispatch, type SetStateAction, type FC, useState, useEffect } from "react";
 import { type Categories } from "~/app/_types/categories";
 import { Carousel, CarouselSlide } from '@mantine/carousel';
@@ -65,7 +65,15 @@ export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, desc
         onChange={(e) => setTitle(e.currentTarget.value)}
         multiple
       />
-      <Text>Description</Text>
+      <Text>
+        {"Description (supports "}
+        <Anchor
+          href="https://www.markdownguide.org/basic-syntax/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >MarkDown</Anchor>
+        {" syntax"})
+      </Text>
       <Editor
         code={description}
         setCode={setDescription}

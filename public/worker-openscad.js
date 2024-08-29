@@ -10,7 +10,8 @@ self.onmessage = async (message) => {
         outputs.push(text);
       },
       printErr: (text) => {
-        outputs.push(text);
+        if (text !== "Could not initialize localization.") // It just happens so hide it from user
+          outputs.push(text);
       },
     });
     addFonts(instance);

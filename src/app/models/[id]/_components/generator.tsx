@@ -227,7 +227,7 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
         </Box>
       </Paper>
       <LoadingOverlay visible={isLoading} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
-      <Modal opened={showOutputs} onClose={() => setShowOutputs(false)} title="Logs">
+      <Modal opened={showOutputs} onClose={() => setShowOutputs(false)} title="Logs" size="xl">
         <Code block>{outputs.join("\n")}</Code>
       </Modal>
     </Paper>
