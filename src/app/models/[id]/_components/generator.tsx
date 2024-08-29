@@ -6,6 +6,7 @@ import { ParameterInputField, type ParameterInput } from "./input";
 import { ShowCode } from "./showCode";
 import { useColorScheme } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
+import { msToString } from "~/helpers/time";
 
 type Iteration = {
   id: string;
@@ -239,7 +240,7 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
       <LoadingOverlay visible={isLoading} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
       <Modal opened={showOutputs} onClose={() => setShowOutputs(false)} title="Logs" size="xl">
         {time !== null && (
-          <Text>Time taken:{" " + Math.floor(time / 1000) + " seconds " + (time % 1000) + " milliseconds"}</Text>
+          <Text>Time taken:{" " + msToString(time)}</Text>
         )}
         <Code block>{outputs.join("\n")}</Code>
       </Modal>
