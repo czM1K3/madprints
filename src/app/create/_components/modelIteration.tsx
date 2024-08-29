@@ -1,9 +1,11 @@
-import { Button, CloseButton, Modal, NativeSelect, Table, TableTbody, TableTd, TableThead, TableTr, Textarea, TextInput, Title } from "@mantine/core";
+import { Button, CloseButton, Modal, NativeSelect, Table, TableTbody, TableTd, TableThead, TableTr, TextInput, Title } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import React, { type Dispatch, type SetStateAction, type FC, useState, useEffect } from "react";
 import { ModelGenerator } from "~/app/models/[id]/_components/generator";
 import { type ParameterType, type ParameterInput, ParameterInputField } from "~/app/models/[id]/_components/input";
 import { getRandomIntPositive } from "~/helpers/random";
+import { useColorScheme } from "@mantine/hooks";
+import Editor from "~/app/_components/common/editor";
 
 type ModelIterationProps = {
   code: string;
@@ -19,6 +21,7 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
   const [newParameterName, setNewParameterName] = useState("");
   const [newParameterDefault, setNewParameterDefault] = useState("");
   const [newParameterDescription, setNewParameterDescription] = useState("");
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     switch (newParameterType) {
@@ -69,13 +72,13 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
   return (
     <>
       <Title>Create iteration</Title>
-      <Textarea
-        label="Code"
-        value={code}
-        onChange={(e) => setCode(e.currentTarget.value)}
-        autosize
-        minRows={6}
-        maxRows={24}
+      <Title order={2}>Code</Title>
+      <Editor
+        code={code}
+        setCode={setCode}
+        colorScheme={colorScheme}
+        langauge="openscad"
+        height="50vh"
       />
 
       <Title order={2}>Parameters</Title>

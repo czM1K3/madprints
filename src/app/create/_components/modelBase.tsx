@@ -1,7 +1,9 @@
-import { Box, Button, FileButton, Image, LoadingOverlay, Select, Textarea, TextInput, Title } from "@mantine/core";
+import { Box, Button, FileButton, Image, LoadingOverlay, Select, Text, TextInput, Title } from "@mantine/core";
 import React, { type Dispatch, type SetStateAction, type FC, useState, useEffect } from "react";
 import { type Categories } from "~/app/_types/categories";
 import { Carousel, CarouselSlide } from '@mantine/carousel';
+import Editor from "~/app/_components/common/editor";
+import { useColorScheme } from "@mantine/hooks";
 
 type ModelBaseProps = {
   isEditing?: true,
@@ -26,6 +28,8 @@ const toBase64 = (file: File): Promise<string | null> => new Promise((resolve, r
 
 export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, description, setDescription, category, setCategory, categories, files, setFiles, images }) => {
   const [previews, setPreviews] = useState<string[]>([]);
+  const colorScheme = useColorScheme();
+
   useEffect(() => {
     (async () => {
       if (!files) return;
@@ -61,13 +65,13 @@ export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, desc
         onChange={(e) => setTitle(e.currentTarget.value)}
         multiple
       />
-      <Textarea
-        label="Description"
-        value={description}
-        onChange={(e) => setDescription(e.currentTarget.value)}
-        autosize
-        minRows={6}
-        maxRows={12}
+      <Text>Description</Text>
+      <Editor
+        code={description}
+        setCode={setDescription}
+        colorScheme={colorScheme}
+        langauge="markdown"
+        height="30vh"
       />
       <Select
         label="Category"

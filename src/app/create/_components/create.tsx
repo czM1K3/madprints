@@ -60,7 +60,7 @@ export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
   }
 
   const screenshot = async () => {
-    const canvas = document.querySelector('canvas');
+    const canvas = document.querySelector<HTMLCanvasElement>("canvas[data-engine^='three.js']");
     if (!canvas) {
       notifications.show({
         title: "Something went wrong",
