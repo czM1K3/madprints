@@ -2,6 +2,7 @@ import OpenScad from "./openscad.js";
 import { addFonts } from "./openscad.fonts.js";
 
 self.onmessage = async (message) => {
+  const startTime = performance.now();
   const outputs = [];
   try {
     const instance = await OpenScad({
@@ -18,9 +19,13 @@ self.onmessage = async (message) => {
     instance.FS.writeFile("/input.scad", message.data.code);
     instance.callMain(["/input.scad", "-o", "cube.stl", ...message.data.parameters]);
     const data = instance.FS.readFile("/cube.stl");
+    const endTime = performance.now();
+    const time = endTime - startTime;
 
-    self.postMessage({ data, outputs });
+    self.postMessage({ data, outputs, time });
   } catch (e) {
-    self.postMessage({ data: null, outputs });
+    const endTime = performance.now();
+    const time = endTime - startTime;
+    self.postMessage({ data: null, outputs, time });
   }
 };

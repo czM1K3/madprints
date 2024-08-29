@@ -17,6 +17,7 @@ type NewIterationProps = {
 export const NewIteration: FC<NewIterationProps> = ({ lastParameters, modelId, lastCode }) => {
   const [code, setCode] = useState(lastCode);
   const [parameters, setParameters] = useState<ParameterInput[]>(lastParameters);
+  const [timeToGenerate, setTimeToGenerate] = useState<null | number>(null);
 
   const mutation = api.model.newIteration.useMutation();
   const router = useRouter();
@@ -48,7 +49,7 @@ export const NewIteration: FC<NewIterationProps> = ({ lastParameters, modelId, l
 
   return (
     <Box pos="relative">
-      <ModelIteration code={code} setCode={setCode} parameters={parameters} setParameters={setParameters} />
+      <ModelIteration code={code} setCode={setCode} parameters={parameters} setParameters={setParameters} setTimeToGenerate={setTimeToGenerate} />
       <Button onClick={() => submit()}>Create</Button>
       <LoadingOverlay visible={isSending} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
     </Box>

@@ -12,10 +12,11 @@ type ModelIterationProps = {
   setCode: Dispatch<SetStateAction<string>>;
   parameters: ParameterInput[];
   setParameters: Dispatch<SetStateAction<ParameterInput[]>>;
+  setTimeToGenerate: Dispatch<SetStateAction<number | null>>;
   createScreenshot?: () => Promise<void>;
 };
 
-export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, parameters, setParameters, createScreenshot }) => {
+export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, parameters, setParameters, createScreenshot, setTimeToGenerate }) => {
   const [showAddParameter, setShowAddParameter] = useState(false);
   const [newParameterType, setNewParameterType] = useState<ParameterType>("Number");
   const [newParameterName, setNewParameterName] = useState("");
@@ -154,6 +155,7 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
           parameters,
         }]}
         createScreenshot={createScreenshot}
+        setTimeToGenerate={setTimeToGenerate}
       />
     </>
   );

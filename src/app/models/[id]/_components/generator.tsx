@@ -1,6 +1,6 @@
 "use client";
 import { Accordion, AccordionControl, AccordionItem, AccordionPanel, Box, Button, Center, Code, Group, LoadingOverlay, Modal, Paper, Text, Title } from "@mantine/core";
-import React, { useEffect, useState, type FC } from "react";
+import React, { type Dispatch, type  SetStateAction, useEffect, useState, type FC } from "react";
 import { StlViewer } from "react-stl-viewer";
 import { ParameterInputField, type ParameterInput } from "./input";
 import { ShowCode } from "./showCode";
@@ -18,11 +18,13 @@ type Iteration = {
 type ModelGeneratorProps = {
   iterations: Iteration[];
   createScreenshot?: () => Promise<void>;
+  setTimeToGenerate?: Dispatch<SetStateAction<number | null>>;
 };
 
 type GeneratorOutput = {
   data: Uint8Array | null;
   outputs: string[];
+  time: number | null;
 };
 
 declare global {
@@ -37,11 +39,12 @@ const getIterationDefaultParams = (iteration: Iteration) => {
   return obj;
 }
 
-export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScreenshot }) => {
+export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScreenshot, setTimeToGenerate }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [outputs, setOutputs] = useState<string[]>([]);
   const [showOutputs, setShowOutputs] = useState(false);
+  const [time, setTime] = useState<number | null>(null);
   const [parameters, setParameters] = useState<Record<string, string>>(getIterationDefaultParams(iterations[0]!));
   const colorScheme = useColorScheme();
 
@@ -50,6 +53,7 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
       window.openscad.onmessage = (message: MessageEvent<GeneratorOutput>) => {
         setOutputs(message.data.outputs);
         setIsLoading(false);
+        setTime(message.data.time);
         if (message.data.data) {
           const blob = new Blob([message.data.data], { type: "application/octet-stream" });
           setModelUrl(URL.createObjectURL(blob));
@@ -72,6 +76,12 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
     }
   }, [iterations]);
 
+  useEffect(() => {
+    if (setTimeToGenerate) {
+      setTimeToGenerate(time);
+    }
+  }, [time, setTimeToGenerate]);
+
   const iterationChange = (id: string | null) => {
     const matchingIteration = iterations.find((iteration) => iteration.id === id);
     if (matchingIteration) {
@@ -88,7 +98,7 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
   }
 
   const generate = (iterationId: string) => {
-    const iteration = iterations.filter((i) => i.id === iterationId)[0];
+    const iteration = iterations.find((i) => i.id === iterationId);
     if (iteration && window.openscad) {
       const arr: string[] = [];
       Object.entries(parameters).forEach(([key, value]) => {
@@ -228,6 +238,9 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
       </Paper>
       <LoadingOverlay visible={isLoading} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
       <Modal opened={showOutputs} onClose={() => setShowOutputs(false)} title="Logs" size="xl">
+        {time !== null && (
+          <Text>Time taken:{" " + Math.floor(time / 1000) + " seconds " + (time % 1000) + " milliseconds"}</Text>
+        )}
         <Code block>{outputs.join("\n")}</Code>
       </Modal>
     </Paper>

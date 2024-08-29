@@ -23,6 +23,7 @@ export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
   const [category, setCategory] = useState("");
   const [parameters, setParameters] = useState<ParameterInput[]>([]);
   const [files, setFiles] = useState<File[] | null>([]);
+  const [timeToGenerate, setTimeToGenerate] = useState<null | number>(null);
 
   const mutation = api.model.create.useMutation();
   const router = useRouter();
@@ -84,8 +85,26 @@ export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
 
   return (
     <Box pos="relative">
-      <ModelBase title={title} setTitle={setTitle} description={description} setDescription={setDescription} categories={categories} category={category} setCategory={setCategory} files={files} setFiles={setFiles} images={[]} />
-      <ModelIteration code={code} setCode={setCode} parameters={parameters} setParameters={setParameters} createScreenshot={screenshot} />
+      <ModelBase
+        title={title}
+        setTitle={setTitle}
+        description={description}
+        setDescription={setDescription}
+        categories={categories}
+        category={category}
+        setCategory={setCategory}
+        files={files}
+        setFiles={setFiles}
+        images={[]}
+      />
+      <ModelIteration
+        code={code}
+        setCode={setCode}
+        parameters={parameters}
+        setParameters={setParameters}
+        createScreenshot={screenshot}
+        setTimeToGenerate={setTimeToGenerate}
+      />
       <Button onClick={() => submit()}>Create</Button>
       <LoadingOverlay visible={isSending} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
     </Box>
