@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Button, LoadingOverlay } from "@mantine/core";
+import { Box, Button, Center, LoadingOverlay } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
 import React, { useState, type FC } from "react";
@@ -50,7 +50,9 @@ export const NewIteration: FC<NewIterationProps> = ({ lastParameters, modelId, l
   return (
     <Box pos="relative">
       <ModelIteration code={code} setCode={setCode} parameters={parameters} setParameters={setParameters} setTimeToGenerate={setTimeToGenerate} />
-      <Button onClick={() => submit()}>Create</Button>
+      <Center>
+        <Button mb="sm" onClick={() => submit()}>Create</Button>
+      </Center>
       <LoadingOverlay visible={isSending} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
     </Box>
   );

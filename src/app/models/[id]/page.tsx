@@ -1,4 +1,4 @@
-import { Button, Paper, Title, TypographyStylesProvider } from "@mantine/core";
+import { Box, Button, Card, Title, TypographyStylesProvider } from "@mantine/core";
 import { notFound } from "next/navigation";
 import { type FC } from "react";
 import { api, HydrateClient } from "~/trpc/server";
@@ -32,7 +32,7 @@ const ModelPage: FC<ModelPageProps> = async ({ params }) => {
   return (
     <HydrateClient>
       <main>
-        <Paper shadow="xs" p="sm" mt="md" mb="md">
+        <Card shadow="sm" withBorder p="sm" mt="md" mb="md">
           <Title>{modelData.title}</Title>
           <Title order={2} c="gray" size={20}>{modelData.created_at.toLocaleString("en-us")}</Title>
           <UserInfo id={modelData.user.id} image={modelData.user.image} name={modelData.user.name} />
@@ -41,12 +41,12 @@ const ModelPage: FC<ModelPageProps> = async ({ params }) => {
             <Markdown>{modelData.description}</Markdown>
           </TypographyStylesProvider>
           {session && session.user && session.user.id === modelData.user.id && (
-            <>
-              <Button component={Link} href={`/models/${modelData.id}/edit`} m="sm">Edit</Button>
-              <Button component={Link} href={`/models/${modelData.id}/new-iteration`} m="sm">New iteration</Button>
-            </>
+            <Box>
+              <Button component={Link} href={`/models/${modelData.id}/edit`} m="xs">Edit</Button>
+              <Button component={Link} href={`/models/${modelData.id}/new-iteration`} m="xs">New iteration</Button>
+            </Box>
           )}
-        </Paper>
+        </Card>
         {modelData.iterations.length > 0 && (
           <ModelGenerator iterations={modelData.iterations} />
         )}

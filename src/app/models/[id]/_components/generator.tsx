@@ -1,5 +1,5 @@
 "use client";
-import { Accordion, AccordionControl, AccordionItem, AccordionPanel, Box, Button, Center, Code, Group, LoadingOverlay, Modal, Paper, Text, Title } from "@mantine/core";
+import { Accordion, AccordionControl, AccordionItem, AccordionPanel, Box, Button, Card, Center, Code, Group, LoadingOverlay, Modal, Paper, Text, Title } from "@mantine/core";
 import React, { type Dispatch, type  SetStateAction, useEffect, useState, type FC } from "react";
 import { StlViewer } from "react-stl-viewer";
 import { ParameterInputField, type ParameterInput } from "./input";
@@ -142,7 +142,7 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
   }
 
   return (
-    <Paper shadow="xs" p="sm" mt="md" mb="md" pos="relative">
+    <Card shadow="sm" withBorder p="sm" mt="" mb="" pos="relative">
       <Accordion chevronPosition="right" variant="contained" defaultValue={iterations[0]?.id} onChange={iterationChange}>
         {iterations.map((iteration) => (
           <AccordionItem value={iteration.id} key={iteration.id}>
@@ -244,6 +244,6 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
         )}
         <Code block>{outputs.join("\n")}</Code>
       </Modal>
-    </Paper>
+    </Card>
   );
 }

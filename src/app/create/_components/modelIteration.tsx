@@ -1,4 +1,4 @@
-import { Button, CloseButton, Modal, NativeSelect, Table, TableTbody, TableTd, TableThead, TableTr, TextInput, Title } from "@mantine/core";
+import { Box, Button, Card, CloseButton, Divider, Modal, NativeSelect, Table, TableTbody, TableTd, TableThead, TableTr, TextInput, Title } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import React, { type Dispatch, type SetStateAction, type FC, useState, useEffect } from "react";
 import { ModelGenerator } from "~/app/models/[id]/_components/generator";
@@ -71,9 +71,9 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
     setNewParameterDefault("0");
   }
   return (
-    <>
+    <Card shadow="sm" withBorder p="md" mb="sm">
       <Title>Create iteration</Title>
-      <Title order={2}>Code</Title>
+      <Title order={2}>OpenSCAD code</Title>
       <Editor
         code={code}
         setCode={setCode}
@@ -81,6 +81,7 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
         langauge="openscad"
         height="50vh"
       />
+      <Divider my="md" />
 
       <Title order={2}>Parameters</Title>
       <Table>
@@ -113,7 +114,9 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
           ))}
         </TableTbody>
       </Table>
-      <Button onClick={() => setShowAddParameter(true)}>Add parameter</Button>
+      <Box>
+        <Button mt="sm" onClick={() => setShowAddParameter(true)}>Add parameter</Button>
+      </Box>
       <Modal opened={showAddParameter} onClose={() => setShowAddParameter(false)} title="Add parameter">
         <NativeSelect
           label="Parameter datatype"
@@ -144,7 +147,7 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
         />
         <Button m="0.5rem 0 0" onClick={() => addParameter()}>Add</Button>
       </Modal>
-
+      <Divider my="md" />
 
       <Title order={2}>Preview</Title>
       <ModelGenerator
@@ -157,6 +160,6 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
         createScreenshot={createScreenshot}
         setTimeToGenerate={setTimeToGenerate}
       />
-    </>
+    </Card>
   );
 }

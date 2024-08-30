@@ -4,7 +4,7 @@ import React, { useState, type FC } from "react";
 import { ModelBase } from "./modelBase";
 import { ModelIteration } from "./modelIteration";
 import { type ParameterInput } from "~/app/models/[id]/_components/input";
-import { Box, Button, LoadingOverlay } from "@mantine/core";
+import { Box, Button, Center, LoadingOverlay } from "@mantine/core";
 import { api } from "~/trpc/react";
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
@@ -105,7 +105,9 @@ export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
         createScreenshot={screenshot}
         setTimeToGenerate={setTimeToGenerate}
       />
-      <Button onClick={() => submit()}>Create</Button>
+      <Center>
+        <Button mb="sm" onClick={() => submit()}>Create</Button>
+      </Center>
       <LoadingOverlay visible={isSending} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
     </Box>
   );

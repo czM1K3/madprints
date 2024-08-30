@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Button, LoadingOverlay } from "@mantine/core";
+import { Box, Button, Center, LoadingOverlay } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
 import React, { useState, type FC } from "react";
@@ -62,7 +62,9 @@ export const EditModel: FC<EditModeProps> = ({ id, categories, images, ...props}
   return (
     <Box pos="relative">
       <ModelBase isEditing title={title} setTitle={setTitle} description={description} setDescription={setDescription} category={category} setCategory={setCategory} categories={categories} files={files} setFiles={setFiles} images={images} />
-      <Button onClick={() => submit()}>Update</Button>
+      <Center>
+        <Button mb="sm" onClick={() => submit()}>Update</Button>
+      </Center>
       <LoadingOverlay visible={isSending} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
     </Box>
   );

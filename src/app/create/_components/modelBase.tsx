@@ -1,4 +1,4 @@
-import { Anchor, Box, Button, FileButton, Image, LoadingOverlay, Select, Text, TextInput, Title } from "@mantine/core";
+import { Anchor, Box, Button, Card, Divider, FileButton, Image, LoadingOverlay, Select, Text, TextInput, Title } from "@mantine/core";
 import React, { type Dispatch, type SetStateAction, type FC, useState, useEffect } from "react";
 import { type Categories } from "~/app/_types/categories";
 import { Carousel, CarouselSlide } from '@mantine/carousel';
@@ -57,14 +57,17 @@ export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, desc
   };
 
   return (
-    <>
+    <Card shadow="sm" withBorder p="md" mb="sm">
       <Title>{isEditing ? "Edit existing model" : "Create new model"}</Title>
+
       <TextInput
         label="Model name"
         value={title}
         onChange={(e) => setTitle(e.currentTarget.value)}
         multiple
       />
+      <Divider my="md" />
+
       <Text>
         {"Description (supports "}
         <Anchor
@@ -81,6 +84,8 @@ export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, desc
         langauge="markdown"
         height="30vh"
       />
+      <Divider my="md" />
+
       <Select
         label="Category"
         placeholder="Pick category"
@@ -88,13 +93,17 @@ export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, desc
         value={categories.keyName[category]}
         onChange={(v) => v ? setCategory(categories.nameKey[v] ?? "") : "" }
       />
+      <Divider my="md" />
+
       {files !== null ? (
         <>
-          <Title order={2}>Images {`(${files.length}/10)`}</Title>
+          <Text>Images {`(${files.length}/10)`}</Text>
           {files.length < 10 ? (
-            <FileButton onChange={(f) => f && setFiles((ff) => [...(ff ?? []), f])} accept="image/png,image/jpeg">
-              {(props) => <Button {...props}>Add image</Button>}
-            </FileButton>
+            <Box>
+              <FileButton onChange={(f) => f && setFiles((ff) => [...(ff ?? []), f])} accept="image/png,image/jpeg">
+                {(props) => <Button {...props}>Add image</Button>}
+              </FileButton>
+            </Box>
           ) : <></>}
           {previews.length ? (
             <Carousel height={400} slideGap="md" pt="sm" pb="sm">
@@ -124,6 +133,6 @@ export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, desc
           <LoadingOverlay visible={isDownloading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
         </Box>
       )}
-    </>
+    </Card>
   );
 }
