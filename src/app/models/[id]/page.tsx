@@ -34,7 +34,6 @@ const ModelPage: FC<ModelPageProps> = async ({ params }) => {
       <main>
         <Card shadow="sm" withBorder p="sm" mt="md" mb="md">
           <Title>{modelData.title}</Title>
-          <Title order={2} c="gray" size={20}>{modelData.created_at.toLocaleString("en-us")}</Title>
           <UserInfo id={modelData.user.id} image={modelData.user.image} name={modelData.user.name} />
           <ImagesCarousel images={modelData.images} />
           <TypographyStylesProvider>

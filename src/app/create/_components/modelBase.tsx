@@ -60,22 +60,23 @@ export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, desc
     <Card shadow="sm" withBorder p="md" mb="sm">
       <Title>{isEditing ? "Edit existing model" : "Create new model"}</Title>
 
+      <Title order={2}>Model name</Title>
       <TextInput
-        label="Model name"
         value={title}
         onChange={(e) => setTitle(e.currentTarget.value)}
         multiple
       />
       <Divider my="md" />
 
+      <Title order={2}>Description</Title>
       <Text>
-        {"Description (supports "}
+        {"supports "}
         <Anchor
           href="https://www.markdownguide.org/basic-syntax/"
           target="_blank"
           rel="noopener noreferrer"
         >MarkDown</Anchor>
-        {" syntax"})
+        {" syntax"}
       </Text>
       <Editor
         code={description}
@@ -86,8 +87,8 @@ export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, desc
       />
       <Divider my="md" />
 
+      <Title order={2}>Category</Title>
       <Select
-        label="Category"
         placeholder="Pick category"
         data={categories.names}
         value={categories.keyName[category]}
@@ -97,7 +98,7 @@ export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, desc
 
       {files !== null ? (
         <>
-          <Text>Images {`(${files.length}/10)`}</Text>
+          <Title order={2}>Images {`(${files.length}/10)`}</Title>
           {files.length < 10 ? (
             <Box>
               <FileButton onChange={(f) => f && setFiles((ff) => [...(ff ?? []), f])} accept="image/png,image/jpeg">

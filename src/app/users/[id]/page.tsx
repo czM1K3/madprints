@@ -1,4 +1,4 @@
-import { Paper, Title } from "@mantine/core";
+import { Title } from "@mantine/core";
 import { notFound } from "next/navigation";
 import React, { type FC } from "react";
 import { ModelsPage } from "~/app/_components/modelsPage";
@@ -25,10 +25,8 @@ const UserPage: FC<UserPageProps> = async ({ params }) => {
   return (
     <HydrateClient>
       <main>
-        <Paper shadow="xs" p="sm" m="md">
-          <Title>{userData.name}</Title>
-          <ModelsPage initialData={models} categories={categories} userId={userData.id} />
-        </Paper>
+        <Title>{userData.name}</Title>
+        <ModelsPage initialData={models} categories={categories} userId={userData.id} />
       </main>
     </HydrateClient>
   );
