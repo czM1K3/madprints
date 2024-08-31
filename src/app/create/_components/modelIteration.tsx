@@ -156,6 +156,7 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
           created_at: new Date("1998-04-10T12:00:00"), // Please don't hate me :D
           id: "1",
           parameters,
+          time_to_generate: null,
         }]}
         createScreenshot={createScreenshot}
         setTimeToGenerate={setTimeToGenerate}

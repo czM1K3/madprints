@@ -21,6 +21,7 @@ module default {
             default := std::datetime_current();
             readonly := true;
         };
+        time_to_generate: int32;
         multi parameters := .<modelIteration[is ModelIterationParameters];
 
         required link model -> Model {

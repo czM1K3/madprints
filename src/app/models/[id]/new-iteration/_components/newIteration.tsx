@@ -30,6 +30,7 @@ export const NewIteration: FC<NewIterationProps> = ({ lastParameters, modelId, l
         id: modelId,
         code,
         parameters,
+        timeToGenerate,
       });
       notifications.show({
         title: "Success",

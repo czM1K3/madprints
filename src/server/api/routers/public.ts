@@ -102,6 +102,7 @@ export const publicRouter = createTRPCRouter({
           number: true,
           code: true,
           created_at: true,
+          time_to_generate: true,
           parameters: {
             id: true,
             name: true,

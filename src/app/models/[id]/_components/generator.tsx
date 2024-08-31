@@ -1,5 +1,5 @@
 "use client";
-import { Accordion, AccordionControl, AccordionItem, AccordionPanel, Box, Button, Card, Center, Code, Group, LoadingOverlay, Modal, Paper, Text, Title } from "@mantine/core";
+import { Accordion, AccordionControl, AccordionItem, AccordionPanel, Box, Button, Card, Center, Code, Flex, Group, Loader, LoadingOverlay, Modal, Paper, Text, Title, Tooltip } from "@mantine/core";
 import React, { type Dispatch, type  SetStateAction, useEffect, useState, type FC } from "react";
 import { StlViewer } from "react-stl-viewer";
 import { ParameterInputField, type ParameterInput } from "./input";
@@ -13,6 +13,7 @@ type Iteration = {
   number?: number;
   code: string;
   created_at: Date;
+  time_to_generate: number | null;
   parameters: ParameterInput[];
 };
 
@@ -46,6 +47,7 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
   const [outputs, setOutputs] = useState<string[]>([]);
   const [showOutputs, setShowOutputs] = useState(false);
   const [time, setTime] = useState<number | null>(null);
+  const [estimatedTime, setEstimatedTime] = useState<number | null>(null);
   const [parameters, setParameters] = useState<Record<string, string>>(getIterationDefaultParams(iterations[0]!));
   const colorScheme = useColorScheme();
 
@@ -121,6 +123,7 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
         arr.push(`${key}=${valueEdited}`);
       });
       setIsLoading(true);
+      setEstimatedTime(iteration.time_to_generate);
       window.openscad.postMessage({
         code : iteration.code,
         parameters: arr,
@@ -177,12 +180,14 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
                   {/* {JSON.stringify(parameters)} */}
                 </Paper>
               )}
-              <Button
-                m="0.2rem"
-                onClick={() => {
-                  generate(iteration.id);
-                }}
-              >Generate</Button>
+              <Tooltip label={`Estimated time to generate: ${msToString(iteration.time_to_generate ?? 0)}`} disabled={!iteration.time_to_generate}>
+                <Button
+                  m="0.2rem"
+                  onClick={() => {
+                    generate(iteration.id);
+                  }}
+                >Generate</Button>
+              </Tooltip>
               <ShowCode code={iteration.code} />
             </AccordionPanel>
           </AccordionItem>
@@ -237,7 +242,19 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
           >Download</Button>
         </Box>
       </Paper>
-      <LoadingOverlay visible={isLoading} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
+      <LoadingOverlay
+        visible={isLoading}
+        zIndex={99}
+        overlayProps={{ radius: "sm", blur: 2 }}
+        loaderProps={{ children: (
+          <Flex direction="column" align="center" gap="lg">
+            <Loader />
+            {estimatedTime !== null && (
+              <Text>Estimated time to generate: {msToString(estimatedTime)}</Text>
+            )}
+          </Flex>
+        ) }}
+      />
       <Modal opened={showOutputs} onClose={() => setShowOutputs(false)} title="Logs" size="xl">
         {time !== null && (
           <Text>Time taken:{" " + msToString(time)}</Text>

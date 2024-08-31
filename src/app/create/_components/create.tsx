@@ -40,6 +40,7 @@ export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
         category: category || null,
         parameters,
         images: files.map((file) => file.name),
+        timeToGenerate,
       });
       for (const [i, file] of files.entries()) {
         await axios.put(res.presignedUrls[i]!, file);

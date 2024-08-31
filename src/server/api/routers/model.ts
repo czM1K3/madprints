@@ -18,6 +18,7 @@ export const modelRouter = createTRPCRouter({
       description: z.string().nullable(),
     })),
     images: z.array(z.string()).min(1).max(10),
+    timeToGenerate: z.number().int().min(0).nullable(),
   })).mutation(async ({ ctx, input }) => {
     const res = await ctx.edgedb.transaction(async (edgedb) => {
       const images = await saveImages(ctx.minio, input.images);
@@ -40,6 +41,7 @@ export const modelRouter = createTRPCRouter({
         model: e.select(e.Model, (model) => ({
           filter_single: e.op(model.id, "=", e.uuid(modelId)),
         })),
+        time_to_generate: input.timeToGenerate,
       }).run(edgedb);
       for (const parameter of input.parameters) {
         await e.insert(e.ModelIterationParameters, {
@@ -180,6 +182,7 @@ export const modelRouter = createTRPCRouter({
       default_value: z.string(),
       description: z.string().nullable(),
     })),
+    timeToGenerate: z.number().int().min(0).nullable(),
   })).mutation(async ({ ctx, input }) => {
     const res = await e.select(e.Model, (model) => ({
       user: {
@@ -214,6 +217,7 @@ export const modelRouter = createTRPCRouter({
           id: true,
           filter_single: e.op(model.id, "=", e.uuid(modelIteration[0]!.model.id)),
         })),
+        time_to_generate: input.timeToGenerate,
       }).run(edgedb);
       for (const parameter of input.parameters) {
         await e.insert(e.ModelIterationParameters, {

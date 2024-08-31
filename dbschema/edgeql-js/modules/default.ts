@@ -77,6 +77,7 @@ export type $ModelIterationλShape = $.typeutil.flatten<_std.$Object_8ce8c71ee4f
   "created_at": $.PropertyDesc<_std.$datetime, $.Cardinality.One, false, false, true, true>;
   "model": $.LinkDesc<$Model, $.Cardinality.One, {}, false, false,  false, false>;
   "parameters": $.LinkDesc<$ModelIterationParameters, $.Cardinality.Many, {}, false, true,  false, false>;
+  "time_to_generate": $.PropertyDesc<_std.$int32, $.Cardinality.AtMostOne, false, false, false, false>;
   "<iterations[is Model]": $.LinkDesc<$Model, $.Cardinality.Many, {}, false, false,  false, false>;
   "<modelIteration[is ModelIterationParameters]": $.LinkDesc<$ModelIterationParameters, $.Cardinality.Many, {}, false, false,  false, false>;
   "<iterations": $.LinkDesc<$.ObjectType, $.Cardinality.Many, {}, false, false,  false, false>;
