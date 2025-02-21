@@ -48,7 +48,7 @@ export const EditModel: FC<EditModeProps> = ({ id, categories, images, ...props}
         message: "Model was successfully edited"
       });
       router.push(`/models/${id}`);
-    } catch (e) {
+    } catch {
       notifications.show({
         title: "Something went wrong",
         message: "Creating was not successfull",

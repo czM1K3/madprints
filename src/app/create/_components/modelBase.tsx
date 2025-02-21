@@ -36,7 +36,9 @@ export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, desc
       const arr: string[] = [];
       for (const file of files) {
         const res = await toBase64(file);
-        res && arr.push(res);
+        if (res) {
+          arr.push(res);
+        }
       }
       setPreviews(arr);
     })().catch(() => console.log("Error"));

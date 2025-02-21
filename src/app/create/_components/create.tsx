@@ -50,7 +50,7 @@ export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
         message: "Model was successfully created"
       });
       router.push(`/models/${res.id}`);
-    } catch (e) {
+    } catch {
       notifications.show({
         title: "Something went wrong",
         message: "Creating was not successfull",

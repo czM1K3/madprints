@@ -37,7 +37,7 @@ export const NewIteration: FC<NewIterationProps> = ({ lastParameters, modelId, l
         message: "Model was successfully edited"
       });
       router.push(`/models/${modelId}`);
-    } catch (e) {
+    } catch {
       notifications.show({
         title: "Something went wrong",
         message: "Creating was not successfull",
