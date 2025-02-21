@@ -11,8 +11,8 @@ type ModelBaseProps = {
   setTitle: Dispatch<SetStateAction<string>>;
   description: string
   setDescription: Dispatch<SetStateAction<string>>;
-  category: string;
-  setCategory: Dispatch<SetStateAction<string>>;
+  category: number | null;
+  setCategory: Dispatch<SetStateAction<number | null>>;
   categories: Categories;
   files: File[] | null;
   setFiles: Dispatch<SetStateAction<File[] | null>>;
@@ -91,8 +91,8 @@ export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, desc
       <Select
         placeholder="Pick category"
         data={categories.names}
-        value={categories.keyName[category]}
-        onChange={(v) => v ? setCategory(categories.nameKey[v] ?? "") : "" }
+        value={category ? categories.keyName[category] : "None"}
+        onChange={(v) => v && setCategory(categories.nameKey[v] ?? 0) }
       />
       <Divider my="md" />
 

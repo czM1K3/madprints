@@ -1,60 +1,58 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import e from "e";
 import { TRPCError } from "@trpc/server";
 import { saveImages, removeImages } from "~/server/strorage";
 import { env } from "~/env";
+import { categories, modelIterationParameters, modelIterations, models } from "~/server/db/schema";
+import { desc, eq } from "drizzle-orm";
 
 export const modelRouter = createTRPCRouter({
   create: protectedProcedure.input(z.object({
     title: z.string(),
     description: z.string(),
     code: z.string(),
-    category: z.string().uuid().nullable(),
+    category: z.number().min(0).nullable(),
     parameters: z.array(z.object({
       name: z.string(),
       datatype: z.enum([ "Number", "Boolean", "String"]),
-      default_value: z.string(),
+      defaultValue: z.string(),
       description: z.string().nullable(),
     })),
     images: z.array(z.string()).min(1).max(10),
     timeToGenerate: z.number().int().min(0).nullable(),
   })).mutation(async ({ ctx, input }) => {
-    const res = await ctx.edgedb.transaction(async (edgedb) => {
+    const res = await ctx.db.transaction(async (tx) => {
       const images = await saveImages(ctx.minio, input.images);
-      const { id : modelId } = await e.insert(e.Model, {
+      const insertedModels = await tx.insert(models).values({
         title: input.title,
         description: input.description,
-        user: e.select(e.User, (user) =>({
-          filter_single: e.op(user.id, "=", e.uuid(ctx.session.user.id))
-        })),
-        category: input.category ? (
-          e.select(e.Category, (category) => ({
-            filter_single: e.op(category.id, "=", e.uuid(input.category!))
-          }))
-        ) : null,
+        userId: ctx.session.user.id,
+        categoryId: input.category !== 0 ? input.category : null,
         images: images.map((image) => image.fileName),
-      }).run(edgedb);
-      const { id: modelIterationId } = await e.insert(e.ModelIteration, {
+      }).returning();
+      const modelId = insertedModels[0]?.id ?? null;
+      if (!modelId) {
+        throw new Error("Something went wrong");
+      }
+      const insertedModelIteration = await tx.insert(modelIterations).values({
         code: input.code,
         number: 1,
-        model: e.select(e.Model, (model) => ({
-          filter_single: e.op(model.id, "=", e.uuid(modelId)),
-        })),
-        time_to_generate: input.timeToGenerate,
-      }).run(edgedb);
+        modelId,
+        timeToGenerate: input.timeToGenerate,
+      }).returning();
+      const modelIterationId = insertedModelIteration[0]?.id ?? null;
+      if (!modelIterationId) {
+        throw new Error("Something went wrong");
+      }
       for (const parameter of input.parameters) {
-        await e.insert(e.ModelIterationParameters, {
+        await tx.insert(modelIterationParameters).values({
           datatype: parameter.datatype,
-          default_value: parameter.default_value,
+          defaultValue: parameter.defaultValue,
           name: parameter.name,
           description: parameter.description === "" ? null : parameter.description,
-          modelIteration: e.select(e.ModelIteration, (modelIteration) => ({
-            filter_single: e.op(modelIteration.id, "=", e.uuid(modelIterationId))
-          })),
-        }).run(edgedb);
+          modelIterationId,
+        });
       }
-
       return {
         id: modelId,
         presignedUrls: images.map((image) => image.presignedUrl),
@@ -66,24 +64,22 @@ export const modelRouter = createTRPCRouter({
   editProps: protectedProcedure.input(z.object({
     id: z.string().uuid(),
   })).query(async ({ ctx, input }) => {
-    const res = await e.select(e.Model, (model) => ({
-      id: true,
-      title: true,
-      description: true,
-      category: {
+    const res = await ctx.db.query.models.findFirst({
+      where: eq(models.id, input.id),
+      columns: {
         id: true,
+        title: true,
+        description: true,
+        images: true,
+        categoryId: true,
+        userId: true,
       },
-      user: {
-        id: true,
-      },
-      images: true,
-      filter_single: e.op(model.id, "=", e.uuid(input.id)),
-    })).run(ctx.edgedb);
-    if (res && res.user.id === ctx.session.user.id) {
+    });
+    if (res && res.userId === ctx.session.user.id) {
       return {
         ...res,
         images: res.images.map((image) => `${env.IMAGE_PREFIX}${image}`),
-        user: undefined,
+        userId: undefined,
       };
     } else if (!res) {
       throw new TRPCError({message: "Model no found", code: "NOT_FOUND" });
@@ -96,37 +92,38 @@ export const modelRouter = createTRPCRouter({
     id: z.string().uuid(),
     title: z.string(),
     description: z.string(),
-    category: z.string().uuid().nullable(),
+    category: z.number().min(0).nullable(),
     images: z.array(z.string()).min(1).max(10).nullable(),
   })).mutation(async ({ ctx, input }) => {
-    const res = await e.select(e.Model, (model) => ({
-      user: {
-        id: true,
-      },
-      images: true,
-      filter_single: e.op(model.id, "=", e.uuid(input.id)),
-    })).run(ctx.edgedb);
+    const res = await ctx.db.query.models.findFirst({
+      where: eq(models.id, input.id),
+      columns: {
+        userId: true,
+        images: true,
+      }
+    });
     if (!res) {
       throw new TRPCError({message: "Model no found", code: "NOT_FOUND" });
     }
-    if (res.user.id !== ctx.session.user.id) {
+    if (res.userId !== ctx.session.user.id) {
       throw new TRPCError({message: "Wrong user", code: "UNAUTHORIZED" });
+    }
+    if (input.category && input.category !== 0) {
+      const category = await ctx.db.query.categories.findFirst({
+        where: eq(categories.id, input.category),
+      });
+      if (!category) {
+        throw new TRPCError({message: "Category no found", code: "NOT_FOUND" });
+      }
     }
     const newImages = input.images === null ? null : await saveImages(ctx.minio, input.images);
 
-    await e.update(e.Model, (model) => ({
-      filter: e.op(model.id, "=", e.uuid(input.id)),
-      set: {
-        title: input.title,
-        description: input.description,
-        images: newImages === null ? undefined : newImages.map((image) => image.fileName),
-        category: input.category ? (
-          e.select(e.Category, (category) => ({
-            filter_single: e.op(category.id, "=", e.uuid(input.category!))
-          }))
-        ) : null,
-      },
-    })).run(ctx.edgedb);
+    await ctx.db.update(models).set({
+      title: input.title,
+      description: input.description,
+      images: newImages === null ? undefined : newImages.map((image) => image.fileName),
+      categoryId: input.category !== 0 ? input.category : null,
+    }).where(eq(models.id, input.id));
     if (newImages !== null) {
       await removeImages(ctx.minio, res.images)
     }
@@ -138,30 +135,35 @@ export const modelRouter = createTRPCRouter({
   newIterationProps: protectedProcedure.input(z.object({
     id: z.string().uuid(),
   })).query(async ({ ctx, input }) => {
-    const res = await e.select(e.Model, (model) => ({
-      id: true,
-      user: {
+    const res = await ctx.db.query.models.findFirst({
+      where: eq(models.id, input.id),
+      columns: {
         id: true,
+        userId: true,
       },
-      iterations: (modelIteration) => ({
-        id: true,
-        code: true,
-        parameters: {
-          id: true,
-          datatype: true,
-          default_value: true,
-          description: true,
-          name: true,
+      with: {
+        iterations: {
+          orderBy: desc(modelIterations.number),
+          limit: 1,
+          columns: {
+            id: true,
+            code: true,
+          },
+          with: {
+            parameters: {
+              columns: {
+                id: true,
+                datatype: true,
+                defaultValue: true,
+                description: true,
+                name: true,
+              },
+            },
+          },
         },
-        order_by: {
-          expression: modelIteration.number,
-          direction: e.DESC,
-        },
-        limit: 1,
-      }),
-      filter_single: e.op(model.id, "=", e.uuid(input.id)),
-    })).run(ctx.edgedb);
-    if (res && res.user.id === ctx.session.user.id && res.iterations.length === 1) {
+      },
+    });
+    if (res && res.userId === ctx.session.user.id && res.iterations.length === 1) {
       return {
         id: res.id,
         iteration: res.iterations[0]!,
@@ -179,56 +181,48 @@ export const modelRouter = createTRPCRouter({
     parameters: z.array(z.object({
       name: z.string(),
       datatype: z.enum([ "Number", "Boolean", "String"]),
-      default_value: z.string(),
+      defaultValue: z.string(),
       description: z.string().nullable(),
     })),
     timeToGenerate: z.number().int().min(0).nullable(),
   })).mutation(async ({ ctx, input }) => {
-    const res = await e.select(e.Model, (model) => ({
-      user: {
-        id: true,
+    const res = await ctx.db.query.models.findFirst({
+      columns: {
+        userId: true,
       },
-      filter_single: e.op(model.id, "=", e.uuid(input.id)),
-    })).run(ctx.edgedb);
+      where: eq(models.id, input.id),
+    });
     if (!res) {
       throw new TRPCError({message: "Model no found", code: "NOT_FOUND" });
     }
-    if (res.user.id !== ctx.session.user.id) {
+    if (res.userId !== ctx.session.user.id) {
       throw new TRPCError({message: "Wrong user", code: "UNAUTHORIZED" });
     }
-    await ctx.edgedb.transaction(async (edgedb) => {
-      const modelIteration = await e.select(e.ModelIteration, (modelIteration) => ({
-        number: true,
-        model: {
-          id: true,
+    await ctx.db.transaction(async (tx) => {
+      const modelIteration = await tx.query.modelIterations.findMany({
+        where: eq(modelIterations.modelId, input.id),
+        columns: {
+          number: true,
+          modelId: true,
         },
-        order_by: {
-          expression: modelIteration.number,
-          direction: e.DESC,
-        },
+        orderBy: desc(modelIterations.number),
         limit: 1,
-        filter: e.op(modelIteration.model.id, "=", e.uuid(input.id)),
-      })).run(edgedb);
+      });
       const nextNumber = (modelIteration[0]?.number ?? 0) + 1;
-      const modelIterationNew = await e.insert(e.ModelIteration, {
+      const modelIterationNew = await tx.insert(modelIterations).values({
         code: input.code,
         number: nextNumber,
-        model: e.select(e.Model, (model) => ({
-          id: true,
-          filter_single: e.op(model.id, "=", e.uuid(modelIteration[0]!.model.id)),
-        })),
-        time_to_generate: input.timeToGenerate,
-      }).run(edgedb);
+        modelId: input.id,
+        timeToGenerate: input.timeToGenerate,
+      }).returning();
       for (const parameter of input.parameters) {
-        await e.insert(e.ModelIterationParameters, {
+        await tx.insert(modelIterationParameters).values({
           datatype: parameter.datatype,
-          default_value: parameter.default_value,
+          defaultValue: parameter.defaultValue,
           name: parameter.name,
           description: parameter.description === "" ? null : parameter.description,
-          modelIteration: e.select(e.ModelIteration, (modelIteration) => ({
-            filter_single: e.op(modelIteration.id, "=", e.uuid(modelIterationNew.id))
-          })),
-        }).run(edgedb);
+          modelIterationId: modelIterationNew[0]!.id
+        });
       }
     });
     return 1;

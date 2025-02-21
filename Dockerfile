@@ -1,6 +1,9 @@
 FROM node:20-alpine AS base
 
-FROM base AS deps
+FROM base AS develop
+RUN npm install --global corepack@latest
+
+FROM develop AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -8,7 +11,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN corepack enable pnpm && pnpm i --frozen-lockfile
 
 
-FROM base AS builder
+FROM develop AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY .env.build .env

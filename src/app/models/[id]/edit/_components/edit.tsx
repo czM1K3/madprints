@@ -13,7 +13,7 @@ type EditModeProps = {
   id: string;
   title: string;
   description: string;
-  category?: string;
+  category: number | null;
   categories: Categories;
   images: string[];
 };
@@ -21,7 +21,7 @@ type EditModeProps = {
 export const EditModel: FC<EditModeProps> = ({ id, categories, images, ...props}) => {
   const [title, setTitle] = useState(props.title);
   const [description, setDescription] = useState(props.description);
-  const [category, setCategory] = useState(props.category ?? "");
+  const [category, setCategory] = useState<number | null>(props.category ?? 0);
   const [files, setFiles] = useState<File[] | null>(null);
 
   const mutation = api.model.edit.useMutation();
@@ -35,7 +35,7 @@ export const EditModel: FC<EditModeProps> = ({ id, categories, images, ...props}
         id,
         title,
         description,
-        category: category || null,
+        category: category,
         images: files?.map((file) => file.name) ?? null,
       });
       if (files !== null && res.presignedUrls !== null) {

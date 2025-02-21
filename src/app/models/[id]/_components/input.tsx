@@ -4,10 +4,10 @@ import React, { type FC } from "react";
 export type ParameterType = "Number" | "Boolean" | "String";
 
 export type ParameterInput = {
-  id: string;
+  id: number;
   name: string;
   datatype: ParameterType;
-  default_value: string;
+  defaultValue: string;
   description: string | null;
 };
 

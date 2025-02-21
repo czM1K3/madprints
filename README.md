@@ -31,12 +31,8 @@ Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/ver
 
 
 
-insert Model {
-  title := "Keychain",
-  description := "Kyechain for cool guys",
-  iterations := {
-    (insert ModelIteration { number := 1, code := "cube(15)" }),
-    (insert ModelIteration { number := 2, code := "Text = \"Gratuluji!\";
+```scad
+Text = "Gratuluji!";
 Width = 80;
 Height = 20;
 Depth = 2;
@@ -48,7 +44,7 @@ union() {
     translate([0, Height / 2, Depth])
         linear_extrude(TextDepth, convexity = 4)
             resize([Width-5, 0], auto = true)
-                text(Text, valign = \"center\");
+                text(Text, valign = "center");
     translate([-Height, 0, 0])
         difference() {
             cube([Height, Height, Depth]);
@@ -61,14 +57,4 @@ union() {
             }
         }
 }
-
-", parameters := {
-      (insert ModelIterationParameters { name := "Text", datatype := <ParameterType>"String", default_value := "Gratuluji", description := "Main text on the keychain" }),
-      (insert ModelIterationParameters { name := "Width", datatype := <ParameterType>"Number", default_value := "80" }),
-      (insert ModelIterationParameters { name := "Height", datatype := <ParameterType>"Number", default_value := "20" }),
-      (insert ModelIterationParameters { name := "Depth", datatype := <ParameterType>"Number", default_value := "2"}),
-      (insert ModelIterationParameters { name := "TextDepth", datatype := <ParameterType>"Number", default_value := "2" }),
-      (insert ModelIterationParameters { name := "HoleDiameter", datatype := <ParameterType>"Number", default_value := "5" })
-    }})
-  }
-}
+```

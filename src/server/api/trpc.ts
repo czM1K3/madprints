@@ -11,7 +11,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { auth } from "~/server/auth";
-import edgedb from "../database";
+import { db } from "../db";
 import minio from "../strorage";
 
 /**
@@ -31,7 +31,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 
   return {
     session,
-    edgedb,
+    db,
     minio,
     ...opts,
   };

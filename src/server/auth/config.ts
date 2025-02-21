@@ -1,11 +1,10 @@
-import NextAuth, { type DefaultSession } from "next-auth";
+import { type DefaultSession, type NextAuthConfig } from "next-auth";
+import { accounts, sessions, users, verificationTokens } from "~/server/db/schema";
+import { env } from "~/env";
+import { db } from "~/server/db";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
 // import DiscordProvider from "next-auth/providers/discord";
 import GitHubProvider from "next-auth/providers/github";
-// import { EdgeDBAdapter } from "@auth/edgedb-adapter";
-import { CustomAdapter } from "./auth-adapter";
-import edgedb from "./database";
-
-import { env } from "~/env";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -33,19 +32,23 @@ declare module "next-auth" {
  *
  * @see https://next-auth.js.org/configuration/options
  */
-export const { auth, handlers, signIn, signOut } = NextAuth({
-  // adapter: EdgeDBAdapter(edgedb),
-  adapter: CustomAdapter(edgedb),
-  // callbacks: {
-  //   session: ({ session, user }) => ({
-  //     ...session,
-  //     user: {
-  //       ...session.user,
-  //       id: user.id,
-  //       // role: user.role,
-  //     },
-  //   }),
-  // },
+export const authConfig = {
+  adapter: DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens,
+  }),
+  callbacks: {
+    session: ({ session, user }) => ({
+      ...session,
+      user: {
+        ...session.user,
+        id: user.id,
+        // role: user.role,
+      },
+    }),
+  },
   providers: [
     // DiscordProvider({
     //   clientId: env.DISCORD_CLIENT_ID,
@@ -65,7 +68,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
      * @see https://next-auth.js.org/providers/github
      */
   ],
-});
+} satisfies NextAuthConfig;
 
 /**
  * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.

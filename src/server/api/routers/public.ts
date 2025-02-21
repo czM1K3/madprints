@@ -1,185 +1,183 @@
 import { z } from "zod";
-import {
-  createTRPCRouter,
-  publicProcedure,
-} from "~/server/api/trpc";
-import e from "e";
+import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { env } from "~/env";
-import { type KeyValue } from "~/app/_types/categories";
+import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { categories, users, models, modelIterations } from "~/server/db/schema";
 
 export const publicRouter = createTRPCRouter({
   modelsPage: publicProcedure
-    .input(z.object({
-      page: z.number().min(1),
-      search: z.string().nullable().default(null),
-      category: z.string().uuid().nullable().default(null),
-      user: z.string().uuid().nullable().default(null),
-    }))
+    .input(
+      z.object({
+        page: z.number().min(1),
+        search: z.string().nullable().default(null),
+        category: z.number().min(0).nullable().default(null),
+        user: z.string().uuid().nullable().default(null),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const perPage = env.NEXT_PUBLIC_PER_PAGE;
-      const query = e.tuple({
-        models: e.array_agg(e.select(e.Model, (model) => ({
+      const offset = (input.page - 1) * perPage;
+
+      const filters = [
+        sql`1 = 1`,
+        input.search
+          ? or(
+              ilike(models.title, `%${input.search}%`),
+              ilike(models.description, `%${input.search}%`),
+            )
+          : undefined,
+        input.category ? eq(models.categoryId, input.category) : undefined,
+        input.user ? eq(models.userId, input.user) : undefined,
+      ].filter(Boolean);
+
+      const resModels = await ctx.db.query.models.findMany({
+        where: and(...filters),
+        limit: perPage,
+        offset,
+        columns: {
           id: true,
           title: true,
           description: true,
-          category: {
-            id: true,
-            name: true,
-          },
           images: true,
-          limit: env.NEXT_PUBLIC_PER_PAGE,
-          offset: e.op(e.op(input.page, "-", e.int32(1)), "*", perPage),
-          order_by: {
-            expression: model.created_at,
-            direction: e.DESC,
+        },
+        with: {
+          category: {
+            columns: {
+              id: true,
+              name: true,
+            },
           },
-          filter: e.all(e.array_unpack(e.array([
-            e.op(e.int32(1), "=", e.int32(1)),
-            ...(input.search ? [
-              e.op(
-                e.op(model.title, "ilike", e.str(`%${input.search}%`)),
-                "or",
-                e.op(model.description, "ilike", e.str(`%${input.search}%`))
-              )
-            ]:[]),
-            ...(input.category ? [
-              e.op(model.category.id, "?=", e.uuid(input.category)),
-            ]:[]),
-            ...(input.user ? [
-              e.op(model.user.id, "=", e.uuid(input.user)),
-            ]:[]),
-          ]))),
-        }))),
-        pages: e.math.ceil(
-          e.op(
-            e.count(e.select(e.Model, (model) => ({
-              filter: e.all(e.array_unpack(e.array([
-                e.op(e.int32(1), "=", e.int32(1)),
-                ...(input.search ? [
-                  e.op(
-                    e.op(model.title, "ilike", e.str(`%${input.search}%`)),
-                    "or",
-                    e.op(model.description, "ilike", e.str(`%${input.search}%`))
-                  )
-                ]:[]),
-                ...(input.category ? [
-                  e.op(model.category.id, "?=", e.uuid(input.category)),
-                ]:[]),
-                ...(input.user ? [
-                  e.op(model.user.id, "=", e.uuid(input.user)),
-                ]:[]),
-              ]))),
-            }))),
-            "/",
-            perPage
-          )
-        ),
+        },
       });
-      const res = await query.run(ctx.edgedb);
+      const resCount = await ctx.db
+        .select({
+          count: sql`count(*)`.mapWith(Number),
+        })
+        .from(models)
+        .where(and(...filters));
+      const resCountNum = resCount[0]?.count ?? 0;
+      const resPages = Math.ceil(resCountNum / perPage);
       return {
-        models: res.models.map((model) => ({
+        models: resModels.map((model) => ({
           ...model,
           images: model.images.map((image) => `${env.IMAGE_PREFIX}${image}`),
         })),
-        pages: res.pages,
+        pages: resPages,
       };
     }),
 
   modelPage: publicProcedure
-    .input(z.object({
-      id: z.string().uuid(),
-    }))
+    .input(
+      z.object({
+        id: z.string().uuid(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
-      const query = e.params({
-        id: e.uuid,
-      }, (params) => e.select(e.Model, (model) => ({
-        id: true,
-        title: true,
-        description: true,
-        created_at: true,
-        iterations: (iteration) => ({
+      const res = await ctx.db.query.models.findFirst({
+        where: eq(models.id, input.id),
+        columns: {
           id: true,
-          number: true,
-          code: true,
-          created_at: true,
-          time_to_generate: true,
-          parameters: {
-            id: true,
-            name: true,
-            datatype: true,
-            default_value: true,
-            description: true,
-          },
-          order_by: {
-            expression: iteration.created_at,
-            direction: e.DESC,
-          },
-        }),
-        user: {
-          id: true,
-          name: true,
-          image: true,
+          title: true,
+          description: true,
+          createdAt: true,
+          images: true,
         },
-        images: true,
-        filter_single: e.op(model.id, "=", params.id),
-      })));
-      const res =  await query.run(ctx.edgedb, {
-        id: input.id,
+        with: {
+          iterations: {
+            columns: {
+              id: true,
+              number: true,
+              code: true,
+              createdAt: true,
+              timeToGenerate: true,
+            },
+            with: {
+              parameters: {
+                columns: {
+                  id: true,
+                  name: true,
+                  datatype: true,
+                  defaultValue: true,
+                  description: true,
+                },
+              },
+            },
+            orderBy: desc(modelIterations.createdAt),
+          },
+          user: {
+            columns: {
+              id: true,
+              name: true,
+              image: true,
+            },
+          },
+        },
       });
-      return res ? {
-        ...res,
-        images: res.images.map((image) => `${env.IMAGE_PREFIX}${image}`)
-      } : null;
+      return res
+        ? {
+            ...res,
+            images: res.images.map((image) => `${env.IMAGE_PREFIX}${image}`),
+          }
+        : null;
     }),
 
   modelTitle: publicProcedure
-    .input(z.object({
-      id: z.string().uuid(),
-    }))
+    .input(
+      z.object({
+        id: z.string().uuid(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
-      const query = e.params({
-        id: e.uuid,
-      }, (params) => e.select(e.Model, (model) => ({
-        id: true,
-        title: true,
-        filter_single: e.op(model.id, "=", params.id),
-      })));
-      const response = await query.run(ctx.edgedb, { id: input.id });
-      return response?.title;
+      const res = await ctx.db.query.models.findFirst({
+        where: eq(models.id, input.id),
+        columns: {
+          title: true,
+        },
+      });
+      return res?.title ?? null;
     }),
 
   categories: publicProcedure.query(async ({ ctx }) => {
-    const query = e.select(e.Category, (category) => ({
-      id: true,
-      name: true,
-      order_by: category.name,
-    }));
-    const result = await query.run(ctx.edgedb);
+    const result = await ctx.db.query.categories.findMany({
+      orderBy: asc(categories.name),
+      columns: {
+        id: true,
+        name: true,
+      },
+    });
     return {
       names: ["None", ...result.map(({ name }) => name)],
-      keyName: result.reduce((categories, current) => {
-        categories[current.id] = current.name;
-        return categories;
-      }, { "": "None" } as KeyValue),
-      nameKey: result.reduce((categories, current) => {
-        categories[current.name] = current.id;
-        return categories;
-      }, { "None": "" } as KeyValue),
+      keyName: result.reduce(
+        (categories, current) => {
+          categories[current.id] = current.name;
+          return categories;
+        },
+        { 0: "None" } as Record<number, string>,
+      ),
+      nameKey: result.reduce(
+        (categories, current) => {
+          categories[current.name] = current.id;
+          return categories;
+        },
+        { None: 0 } as Record<string, number>,
+      ),
     };
   }),
 
-  userPage: publicProcedure.input(z.object({
-    id: z.string().uuid(),
-  })).query(async ({ ctx, input }) => {
-    const query = e.params({
-      id: e.uuid
-    }, (params) => e.select(e.User, (user) => ({
-      id: true,
-      name: true,
-      filter_single: e.op(user.id, "=", params.id),
-    })));
-    return await query.run(ctx.edgedb, {
-      id: input.id,
-    });
-  }),
+  userPage: publicProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const res = await ctx.db.query.users.findFirst({
+        where: eq(users.id, input.id),
+        columns: {
+          id: true,
+          name: true,
+        },
+      });
+      return res ?? null;
+    }),
 });

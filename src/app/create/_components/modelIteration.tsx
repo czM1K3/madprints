@@ -58,9 +58,9 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
     }
     const newParameter: ParameterInput = {
       datatype: newParameterType,
-      default_value: newParameterDefault,
+      defaultValue: newParameterDefault,
       description: newParameterDescription,
-      id: getRandomIntPositive().toString(),
+      id: getRandomIntPositive(),
       name: newParameterName,
     }
     setParameters(p => [...p, newParameter]);
@@ -99,7 +99,7 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
             <TableTr key={i}>
               <TableTd>{parameter.name}</TableTd>
               <TableTd>{parameter.datatype}</TableTd>
-              <TableTd>{parameter.default_value}</TableTd>
+              <TableTd>{parameter.defaultValue}</TableTd>
               <TableTd>{parameter.description}</TableTd>
               <TableTd>
                 <CloseButton onClick={() => {
@@ -131,10 +131,10 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
         />
         <ParameterInputField
           input={{
-            id: "1",
+            id: 1,
             datatype: newParameterType,
             name: "Default value",
-            default_value: "",
+            defaultValue: "",
             description: null,
           }}
           value={newParameterDefault}
@@ -153,10 +153,11 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
       <ModelGenerator
         iterations={[{
           code,
-          created_at: new Date("1998-04-10T12:00:00"), // Please don't hate me :D
-          id: "1",
+          createdAt: new Date("1998-04-10T12:00:00"), // Please don't hate me :D
+          id: 1,
           parameters,
-          time_to_generate: null,
+          timeToGenerate: null,
+          number: 1,
         }]}
         createScreenshot={createScreenshot}
         setTimeToGenerate={setTimeToGenerate}

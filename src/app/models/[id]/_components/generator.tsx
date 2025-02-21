@@ -9,11 +9,11 @@ import { notifications } from "@mantine/notifications";
 import { msToString } from "~/helpers/time";
 
 type Iteration = {
-  id: string;
-  number?: number;
+  id: number;
+  number: number;
   code: string;
-  created_at: Date;
-  time_to_generate: number | null;
+  createdAt: Date;
+  timeToGenerate: number | null;
   parameters: ParameterInput[];
 };
 
@@ -36,7 +36,7 @@ declare global {
 }
 
 const getIterationDefaultParams = (iteration: Iteration) => {
-  const arr = iteration.parameters.map((parameter) => ({ [parameter.name]: parameter.default_value }));
+  const arr = iteration.parameters.map((parameter) => ({ [parameter.name]: parameter.defaultValue }));
   const obj = Object.fromEntries(arr.flatMap(Object.entries));
   return obj;
 }
@@ -86,7 +86,8 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
   }, [time, setTimeToGenerate]);
 
   const iterationChange = (id: string | null) => {
-    const matchingIteration = iterations.find((iteration) => iteration.id === id);
+    const parsedId = id !== null ? parseInt(id) : null;
+    const matchingIteration = iterations.find((iteration) => iteration.id === parsedId);
     if (matchingIteration) {
       setParameters(getIterationDefaultParams(matchingIteration));
     }
@@ -100,7 +101,7 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
     });
   }
 
-  const generate = (iterationId: string) => {
+  const generate = (iterationId: number) => {
     const iteration = iterations.find((i) => i.id === iterationId);
     if (iteration && window.openscad) {
       const arr: string[] = [];
@@ -123,7 +124,7 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
         arr.push(`${key}=${valueEdited}`);
       });
       setIsLoading(true);
-      setEstimatedTime(iteration.time_to_generate);
+      setEstimatedTime(iteration.timeToGenerate);
       window.openscad.postMessage({
         code : iteration.code,
         parameters: arr,
@@ -146,15 +147,15 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
 
   return (
     <Card shadow="sm" withBorder p="sm" mt="" mb="" pos="relative">
-      <Accordion chevronPosition="right" variant="contained" defaultValue={iterations[0]?.id} onChange={iterationChange}>
+      <Accordion chevronPosition="right" variant="contained" defaultValue={iterations[0]?.id.toString()} onChange={iterationChange}>
         {iterations.map((iteration) => (
-          <AccordionItem value={iteration.id} key={iteration.id}>
+          <AccordionItem value={iteration.id.toString()} key={iteration.id}>
             <AccordionControl>
               <Group wrap="nowrap">
                 <div>
                   <Text>Version {iteration.number ?? "Preview"}</Text>
                   <Text size="sm" c="dimmed" fw={400}>
-                    {iteration.created_at.toLocaleString("en-us")}
+                    {iteration.createdAt.toLocaleString("en-us")}
                   </Text>
                 </div>
               </Group>
@@ -174,13 +175,13 @@ export const ModelGenerator: FC<ModelGeneratorProps> = ({ iterations, createScre
                   <Button
                     m="1rem 0 0"
                     onClick={() => {
-                      iterationChange(iteration.id);
+                      iterationChange(iteration.id.toString());
                     }}
                   >Reset default values</Button>
                   {/* {JSON.stringify(parameters)} */}
                 </Paper>
               )}
-              <Tooltip label={`Estimated time to generate: ${msToString(iteration.time_to_generate ?? 0)}`} disabled={!iteration.time_to_generate}>
+              <Tooltip label={`Estimated time to generate: ${msToString(iteration.timeToGenerate ?? 0)}`} disabled={!iteration.timeToGenerate}>
                 <Button
                   m="0.2rem"
                   onClick={() => {

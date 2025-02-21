@@ -1,7 +1,5 @@
 export type Categories = {
   names: string[];
-  keyName: KeyValue;
-  nameKey: KeyValue;
+  keyName: Record<number, string>;
+  nameKey: Record<string, number>;
 };
-
-export type KeyValue = Record<string, string>;

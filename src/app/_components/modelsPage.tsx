@@ -16,7 +16,7 @@ type ModelsPageProps = {
       title: string;
       images: string[];
       category: {
-        id: string;
+        id: number;
         name: string;
       } | null;
     }[];
@@ -30,11 +30,11 @@ export const ModelsPage: FC<ModelsPageProps> = ({ initialData, categories, userI
   const [page, setPage] = useState(1);
   const [searchCurrent, setSearchCurrent] = useState("");
   const [search] = useDebouncedValue(searchCurrent, 500);
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState<number | null>(null);
 
   const { data, isLoading, error, isRefetching } = api.public.modelsPage.useQuery({
     page,
-    category: category || null,
+    category: category ?? null,
     search: search || null,
     user: userId ?? null,
   }, {
@@ -64,8 +64,8 @@ export const ModelsPage: FC<ModelsPageProps> = ({ initialData, categories, userI
           label="Category"
           placeholder="Pick category"
           data={categories.names}
-          value={categories.keyName[category]}
-          onChange={(v) => v ? setCategory(categories.nameKey[v] ?? "") : "" }
+          value={category ? categories.keyName[category] : "None"}
+          onChange={(v) => v && setCategory(categories.nameKey[v] ?? 0) }
         />
       </Paper>
       <Box pos="relative">

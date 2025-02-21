@@ -20,7 +20,7 @@ export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [code, setCode] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState<number | null>(null);
   const [parameters, setParameters] = useState<ParameterInput[]>([]);
   const [files, setFiles] = useState<File[] | null>([]);
   const [timeToGenerate, setTimeToGenerate] = useState<null | number>(null);
@@ -37,7 +37,7 @@ export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
         title,
         description,
         code,
-        category: category || null,
+        category,
         parameters,
         images: files.map((file) => file.name),
         timeToGenerate,
