@@ -48,6 +48,7 @@ export const publicRouter = createTRPCRouter({
             },
           },
         },
+        orderBy: desc(models.createdAt),
       });
       const resCount = await ctx.db
         .select({
