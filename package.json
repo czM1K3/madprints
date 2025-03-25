@@ -33,7 +33,7 @@
     "markdown-to-jsx": "^7.7.4",
     "minio": "^8.0.4",
     "monaco-editor": "0.51.0",
-    "next": "^14.2.24",
+    "next": "^14.2.25",
     "next-auth": "5.0.0-beta.25",
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
@@ -57,7 +57,7 @@
     "@typescript-eslint/parser": "^8.26.1",
     "drizzle-kit": "^0.30.5",
     "eslint": "^8.57.1",
-    "eslint-config-next": "^14.2.24",
+    "eslint-config-next": "^14.2.25",
     "eslint-plugin-drizzle": "^0.2.3",
     "typescript": "^5.8.2"
   },
