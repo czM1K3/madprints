@@ -1,4 +1,4 @@
-import { Input, InputWrapper, NumberInput, Text } from "@mantine/core";
+import { Checkbox, Input, InputWrapper, NumberInput, Text } from "@mantine/core";
 import React, { type FC } from "react";
 
 export type ParameterType = "Number" | "Boolean" | "String";
@@ -38,10 +38,21 @@ export const ParameterInputField: FC<ParameterInputProps> = ({ input, value, onC
           onChange={(e) => onChange(e.toString() || "0")}
         />
       );
+    case "Boolean":
+      return (
+        // Requires align-items in globals.css
+        <Checkbox
+          label={input.name}
+          description={input.description}
+          mt="sm"
+          checked={value === "true"}
+          onChange={() => onChange(value === "true" ? "false" : "true")}
+        />
+      )
     default:
       return (
         <Text>
-          Error witho showing {input.name}
+          Error witho showing {`"${input.name}"`}
         </Text>
       );
   }
