@@ -175,6 +175,7 @@ export const modelRouter = createTRPCRouter({
     }
   }),
 
+  // TODO more validation
   newIteration: protectedProcedure.input(z.object({
     id: z.string().uuid(),
     code: z.string(),

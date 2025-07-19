@@ -122,7 +122,7 @@ export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, paramet
           label="Parameter datatype"
           value={newParameterType}
           onChange={(e) => setNewParameterType(e.currentTarget.value as ParameterType)}
-          data={["Number", "String"]}
+          data={["Number", "String", "Boolean"]}
         />
         <TextInput
           label="Parameter name"
