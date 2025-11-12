@@ -24,7 +24,7 @@ type ModelGeneratorProps = {
 };
 
 type GeneratorOutput = {
-  data: Uint8Array | null;
+  data: Uint8Array<ArrayBuffer> | null;
   outputs: string[];
   time: number | null;
 };
