@@ -10,13 +10,14 @@ export const metadata: Metadata = {
 };
 
 type EditPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
-const EditPage: NextPage<EditPageProps> = async ({ params }) => {
-  const modelData = await api.model.editProps({ id: params.id });
+const EditPage: NextPage<EditPageProps> = async (props) => {
+  const { id } = await props.params;
+  const modelData = await api.model.editProps({ id });
   if (!modelData) {
     return notFound();
   }

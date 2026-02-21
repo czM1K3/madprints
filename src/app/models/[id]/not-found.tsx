@@ -10,10 +10,9 @@ const NotFound: NextPage = () => {
           <Title>Model not found</Title>
         </Center>
         <Center m="sm">
-          <Button
-            component={Link}
-            href="/"
-          >Go back to main page</Button>
+          <Link href="/">
+            <Button component="div">Go back to main page</Button>
+          </Link>
         </Center>
       </Box>
     </Center>

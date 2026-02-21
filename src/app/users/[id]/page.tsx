@@ -5,14 +5,15 @@ import { ModelsPage } from "~/app/_components/modelsPage";
 import { api, HydrateClient } from "~/trpc/server";
 
 type UserPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 const UserPage: FC<UserPageProps> = async ({ params }) => {
+  const { id } = await params;
   const userData = await api.public.userPage({
-    id: params.id,
+    id,
   }).catch(() => null);
   if (!userData) {
     return notFound();
