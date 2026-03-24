@@ -26,9 +26,11 @@ export const ModelCard: FC<ModelCardProps> = ({ description, id, title, category
         <Badge>{category}</Badge>
       )}
       <Text size="sm" c="dimmed" lineClamp={1}>{description}</Text>
-      <Button component={Link} href={`/models/${id}`}>
-        View
-      </Button>
+      <Link href={`/models/${id}`}>
+        <Button component="div">
+          View
+        </Button>
+      </Link>
     </Card>
   )
 };

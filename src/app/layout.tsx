@@ -25,11 +25,12 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const session = await auth();
-  const colorScheme = headers().get("sec-ch-prefers-color-scheme");
+  const colorScheme = (await headers()).get("sec-ch-prefers-color-scheme");
+  const defaultColorScheme = colorScheme === "dark" ? "dark" : "light";
   return (
-    <html lang="en">
+    <html lang="en" data-mantine-color-scheme={defaultColorScheme}>
       <head>
-        <ColorSchemeScript defaultColorScheme={colorScheme === "dark" ? "dark" : "light"} />
+        <ColorSchemeScript defaultColorScheme={defaultColorScheme} />
         <meta
           name="viewport"
           content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"

@@ -11,20 +11,22 @@ import Markdown from "markdown-to-jsx";
 import { ImagesCarousel } from "./_components/images";
 
 type ModelPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
-export const generateMetadata = async ({ params }: ModelPageProps, _parent: ResolvingMetadata): Promise<Metadata> => {
-  const title = await api.public.modelTitle({ id: params.id }).catch(() => null);
+export const generateMetadata = async (props: ModelPageProps, _parent: ResolvingMetadata): Promise<Metadata> => {
+  const { id } = await props.params;
+  const title = await api.public.modelTitle({ id }).catch(() => null);
   return {
     title: title ? `${title} | MadPrints`: "Model not found",
   };
 };
 
-const ModelPage: FC<ModelPageProps> = async ({ params }) => {
-  const modelData = await api.public.modelPage({ id: params.id }).catch(() => null);
+const ModelPage: FC<ModelPageProps> = async (props) => {
+  const { id } = await props.params;
+  const modelData = await api.public.modelPage({ id }).catch(() => null);
   if (!modelData) {
     return notFound();
   }
@@ -41,8 +43,12 @@ const ModelPage: FC<ModelPageProps> = async ({ params }) => {
           </TypographyStylesProvider>
           {session && session.user && session.user.id === modelData.user.id && (
             <Box>
-              <Button component={Link} href={`/models/${modelData.id}/edit`} m="xs">Edit</Button>
-              <Button component={Link} href={`/models/${modelData.id}/new-iteration`} m="xs">New iteration</Button>
+              <Link href={`/models/${modelData.id}/edit`}>
+                <Button component="div" m="xs">Edit</Button>
+              </Link>
+              <Link href={`/models/${modelData.id}/new-iteration`}>
+                <Button component="div" m="xs">New iteration</Button>
+              </Link>
             </Box>
           )}
         </Card>

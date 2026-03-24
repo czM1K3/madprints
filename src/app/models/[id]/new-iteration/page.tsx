@@ -10,13 +10,14 @@ export const metadata: Metadata = {
 };
 
 type NewIterationPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
-const NewIterationPage: NextPage<NewIterationPageProps> = async ({ params }) => {
-  const modelData = await api.model.newIterationProps({ id: params.id });
+const NewIterationPage: NextPage<NewIterationPageProps> = async (props) => {
+  const { id } = await props.params;
+  const modelData = await api.model.newIterationProps({ id });
   if (!modelData) {
     return notFound();
   }
