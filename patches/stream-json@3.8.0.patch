@@ -1,0 +1,21 @@
+diff --git a/src/jsonl/Parser.d.ts b/src/jsonl/Parser.d.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..b807aaaf62b17e8b7cda6b2f11caf6e5c7e095d5
+--- /dev/null
++++ b/src/jsonl/Parser.d.ts
+@@ -0,0 +1,3 @@
++export * from './parser.js';
++import parser from './parser.js';
++export default parser;
+diff --git a/src/jsonl/Parser.js b/src/jsonl/Parser.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..d1e7b6b4c309e3ac9b08ba6906a858fa5d5d367d
+--- /dev/null
++++ b/src/jsonl/Parser.js
+@@ -0,0 +1,6 @@
++import parser from './parser.js';
++
++parser.make = parser;
++
++export default parser;
++export * from './parser.js';
