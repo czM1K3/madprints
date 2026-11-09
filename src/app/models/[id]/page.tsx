@@ -41,7 +41,7 @@ const ModelPage: FC<ModelPageProps> = async (props) => {
           <TypographyStylesProvider>
             <Markdown>{modelData.description}</Markdown>
           </TypographyStylesProvider>
-          {session && session.user && session.user.id === modelData.user.id && (
+          {session?.user?.id === modelData.user.id && (
             <Box>
               <Link href={`/models/${modelData.id}/edit`}>
                 <Button component="div" m="xs">Edit</Button>

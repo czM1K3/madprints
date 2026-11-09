@@ -75,7 +75,7 @@ export const modelRouter = createTRPCRouter({
         userId: true,
       },
     });
-    if (res && res.userId === ctx.session.user.id) {
+    if (res?.userId === ctx.session.user.id) {
       return {
         ...res,
         images: res.images.map((image) => `${env.IMAGE_PREFIX}${image}`),
@@ -163,7 +163,7 @@ export const modelRouter = createTRPCRouter({
         },
       },
     });
-    if (res && res.userId === ctx.session.user.id && res.iterations.length === 1) {
+    if (res?.userId === ctx.session.user.id && res.iterations.length === 1) {
       return {
         id: res.id,
         iteration: res.iterations[0]!,
