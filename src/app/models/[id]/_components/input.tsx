@@ -1,5 +1,7 @@
-import { Checkbox, Input, InputWrapper, NumberInput, Text } from "@mantine/core";
+"use client";
+
 import React, { type FC } from "react";
+import { Field } from "~/app/_components/ui/field";
 
 export type ParameterType = "Number" | "Boolean" | "String";
 
@@ -15,45 +17,44 @@ type ParameterInputProps = {
   input: ParameterInput;
   value: string;
   onChange: (value: string) => void;
-}
+};
 
 export const ParameterInputField: FC<ParameterInputProps> = ({ input, value, onChange }) => {
   switch (input.datatype) {
     case "String":
       return (
-        <InputWrapper description={input.description} label={input.name}>
-          <Input
-            value={value}
-            onChange={(e) => onChange(e.currentTarget.value)}
-          />
-        </InputWrapper>
+        <Field label={input.name} hint={input.description}>
+          <input type="text" value={value} onChange={(e) => onChange(e.target.value)} />
+        </Field>
       );
     case "Number":
       return (
-        <NumberInput
-          label={input.name}
-          description={input.description}
-          step={1}
-          value={parseFloat(value)}
-          onChange={(e) => onChange(e.toString() || "0")}
-        />
+        <Field label={input.name} hint={input.description}>
+          <input
+            type="number"
+            step="any"
+            value={value}
+            onChange={(e) => onChange(e.target.value === "" ? "0" : e.target.value)}
+          />
+        </Field>
       );
     case "Boolean":
-      return (
-        // Requires align-items in globals.css
-        <Checkbox
-          label={input.name}
-          description={input.description}
-          mt="sm"
-          checked={value === "true"}
-          onChange={() => onChange(value === "true" ? "false" : "true")}
-        />
-      )
+      return <BooleanField input={input} value={value} onChange={onChange} />;
     default:
-      return (
-        <Text>
-          Error witho showing {`"${input.name}"`}
-        </Text>
-      );
+      return <p role="alert">Cannot display parameter “{input.name}”.</p>;
   }
 };
+
+const BooleanField: FC<ParameterInputProps> = ({ input, value, onChange }) => (
+  <label className="check">
+    <input
+      type="checkbox"
+      checked={value === "true"}
+      onChange={(e) => onChange(e.target.checked ? "true" : "false")}
+    />
+    <span>
+      <strong>{input.name}</strong>
+      {input.description && <span className="hint" style={{ display: "block" }}>{input.description}</span>}
+    </span>
+  </label>
+);

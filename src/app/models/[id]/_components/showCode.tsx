@@ -1,7 +1,8 @@
-import React, { type FC, Fragment, useState } from "react";
-import { Button, Modal } from "@mantine/core";
+"use client";
+
+import React, { type FC, useState } from "react";
+import { Modal } from "~/app/_components/ui/modal";
 import Editor from "~/app/_components/common/editor";
-import { useColorScheme } from "@mantine/hooks";
 
 type ShowCodeProps = {
   code: string;
@@ -9,20 +10,12 @@ type ShowCodeProps = {
 
 export const ShowCode: FC<ShowCodeProps> = ({ code }) => {
   const [show, setShow] = useState(false);
-  const colorScheme = useColorScheme();
-
   return (
-    <Fragment>
-      <Button onClick={() => setShow(true)}>Show code</Button>
-      <Modal opened={show} onClose={() => setShow(false)} title="Source code" size="xl">
-        <Editor
-          code={code}
-          colorScheme={colorScheme}
-          langauge="openscad"
-          height="70vh"
-          readOnly
-        />
+    <>
+      <button type="button" className="btn btn-secondary" onClick={() => setShow(true)}>Show code</button>
+      <Modal open={show} onClose={() => setShow(false)} title="Source code" wide>
+        <Editor code={code} langauge="openscad" label="OpenSCAD source code (read only)" height="65vh" readOnly />
       </Modal>
-    </Fragment>
+    </>
   );
 };

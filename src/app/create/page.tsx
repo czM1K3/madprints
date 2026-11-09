@@ -2,12 +2,11 @@ import React from "react";
 import { type Metadata, type NextPage } from "next";
 import { notFound } from "next/navigation";
 import { auth } from "~/server/auth";
-import { Paper } from "@mantine/core";
 import { CreateModel } from "./_components/create";
 import { api } from "~/trpc/server";
 
 export const metadata: Metadata = {
-  title: "Create new model | MadPrints",
+  title: "Create new model",
 };
 
 const CreatePage: NextPage = async () => {
@@ -16,11 +15,7 @@ const CreatePage: NextPage = async () => {
     return notFound();
   }
   const categories = await api.public.categories();
-  return (
-    <Paper>
-      <CreateModel categories={categories} />
-    </Paper>
-  );
-}
+  return <CreateModel categories={categories} />;
+};
 
 export default CreatePage;

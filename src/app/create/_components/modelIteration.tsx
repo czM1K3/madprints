@@ -1,11 +1,12 @@
-import { Box, Button, Card, CloseButton, Divider, Modal, NativeSelect, Table, TableTbody, TableTd, TableThead, TableTr, TextInput, Title } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
-import React, { type Dispatch, type SetStateAction, type FC, useState, useEffect } from "react";
+"use client";
+
+import React, { type Dispatch, type SetStateAction, type FC, useState } from "react";
 import { ModelGenerator } from "~/app/models/[id]/_components/generator";
 import { type ParameterType, type ParameterInput, ParameterInputField } from "~/app/models/[id]/_components/input";
 import { getRandomIntPositive } from "~/helpers/random";
-import { useColorScheme } from "@mantine/hooks";
 import Editor from "~/app/_components/common/editor";
+import { Modal } from "~/app/_components/ui/modal";
+import { Field } from "~/app/_components/ui/field";
 
 type ModelIterationProps = {
   code: string;
@@ -16,152 +17,153 @@ type ModelIterationProps = {
   createScreenshot?: () => Promise<void>;
 };
 
-export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, parameters, setParameters, createScreenshot, setTimeToGenerate }) => {
-  const [showAddParameter, setShowAddParameter] = useState(false);
-  const [newParameterType, setNewParameterType] = useState<ParameterType>("Number");
-  const [newParameterName, setNewParameterName] = useState("");
-  const [newParameterDefault, setNewParameterDefault] = useState("");
-  const [newParameterDescription, setNewParameterDescription] = useState("");
-  const colorScheme = useColorScheme();
+const DEFAULTS: Record<ParameterType, string> = { Boolean: "false", Number: "0", String: "" };
 
-  useEffect(() => {
-    switch (newParameterType) {
-      case "Boolean":
-        setNewParameterDefault("false");
-        return;
-      case "Number":
-        setNewParameterDefault("0");
-        return;
-      case "String":
-        setNewParameterDefault("");
-        return;
-    }
-  }, [newParameterType]);
+export const ModelIteration: FC<ModelIterationProps> = ({ code, setCode, parameters, setParameters, createScreenshot, setTimeToGenerate }) => {
+  const [showAdd, setShowAdd] = useState(false);
+  const [type, setType] = useState<ParameterType>("Number");
+  const [name, setName] = useState("");
+  const [defaultValue, setDefaultValue] = useState(DEFAULTS.Number);
+  const [description, setDescription] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
+
+  const changeType = (t: ParameterType) => {
+    setType(t);
+    setDefaultValue(DEFAULTS[t]);
+  };
+
+  const closeAdd = () => {
+    setShowAdd(false);
+    setNameError(null);
+  };
 
   const addParameter = () => {
-    if (newParameterName.length === 0) {
-      notifications.show({
-        title: "Wrong input",
-        message: "Parameter name has got to include any letters",
-        color: "red",
-      });
+    const trimmed = name.trim();
+    if (trimmed.length === 0) {
+      setNameError("Enter a parameter name.");
       return;
     }
-    const existingNames = [...parameters].map((p) => p.name.toUpperCase());
-    if (existingNames.includes(newParameterName.toUpperCase())) {
-      notifications.show({
-        title: "Wrong input",
-        message: `Parameter name "${newParameterName}" already exists`,
-        color: "red",
-      });
+    if (parameters.some((p) => p.name.toUpperCase() === trimmed.toUpperCase())) {
+      setNameError(`Parameter “${trimmed}” already exists.`);
       return;
     }
-    const newParameter: ParameterInput = {
-      datatype: newParameterType,
-      defaultValue: newParameterDefault,
-      description: newParameterDescription,
+    setParameters((p) => [...p, {
+      datatype: type,
+      defaultValue,
+      description: description || null,
       id: getRandomIntPositive(),
-      name: newParameterName,
-    }
-    setParameters(p => [...p, newParameter]);
-    setNewParameterName("");
-    setNewParameterType("Number");
-    setShowAddParameter(false);
-    setNewParameterDescription("");
-    setNewParameterDefault("0");
-  }
+      name: trimmed,
+    }]);
+    setName("");
+    changeType("Number");
+    setDescription("");
+    closeAdd();
+  };
+
   return (
-    <Card shadow="sm" withBorder p="md" mb="sm">
-      <Title>Create iteration</Title>
-      <Title order={2}>OpenSCAD code</Title>
-      <Editor
-        code={code}
-        setCode={setCode}
-        colorScheme={colorScheme}
-        langauge="openscad"
-        height="50vh"
-      />
-      <Divider my="md" />
+    <section className="card stack" aria-labelledby="iteration-heading">
+      <h2 id="iteration-heading">Model version</h2>
 
-      <Title order={2}>Parameters</Title>
-      <Table>
-        <TableThead>
-          <TableTr>
-            <TableTd>Name</TableTd>
-            <TableTd>Datatype</TableTd>
-            <TableTd>Default value</TableTd>
-            <TableTd>Description</TableTd>
-            <TableTd>Delete</TableTd>
-          </TableTr>
-        </TableThead>
-        <TableTbody>
-          {parameters.map((parameter, i) => (
-            <TableTr key={i}>
-              <TableTd>{parameter.name}</TableTd>
-              <TableTd>{parameter.datatype}</TableTd>
-              <TableTd>{parameter.defaultValue}</TableTd>
-              <TableTd>{parameter.description}</TableTd>
-              <TableTd>
-                <CloseButton onClick={() => {
-                  setParameters((p) => {
-                    const copy = [...p];
-                    copy.splice(i, 1);
-                    return copy;
-                  });
-                }} />
-              </TableTd>
-            </TableTr>
-          ))}
-        </TableTbody>
-      </Table>
-      <Box>
-        <Button mt="sm" onClick={() => setShowAddParameter(true)}>Add parameter</Button>
-      </Box>
-      <Modal opened={showAddParameter} onClose={() => setShowAddParameter(false)} title="Add parameter">
-        <NativeSelect
-          label="Parameter datatype"
-          value={newParameterType}
-          onChange={(e) => setNewParameterType(e.currentTarget.value as ParameterType)}
-          data={["Number", "String", "Boolean"]}
-        />
-        <TextInput
-          label="Parameter name"
-          value={newParameterName}
-          onChange={(e) => setNewParameterName(e.currentTarget.value)}
-        />
-        <ParameterInputField
-          input={{
-            id: 1,
-            datatype: newParameterType,
-            name: "Default value",
-            defaultValue: "",
-            description: null,
+      <div className="field">
+        <span className="label">OpenSCAD code</span>
+        <Editor code={code} setCode={setCode} langauge="openscad" label="OpenSCAD code" height="50vh" />
+      </div>
+
+      <div className="stack-sm">
+        <h3>Parameters</h3>
+        {parameters.length === 0 ? (
+          <p className="muted">No parameters yet. Parameters let viewers customize the model.</p>
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <caption className="visually-hidden">Model parameters</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Default</th>
+                  <th scope="col">Description</th>
+                  <th scope="col"><span className="visually-hidden">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {parameters.map((parameter, i) => (
+                  <tr key={parameter.id ?? i}>
+                    <th scope="row">{parameter.name}</th>
+                    <td>{parameter.datatype}</td>
+                    <td>{parameter.defaultValue}</td>
+                    <td>{parameter.description}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-danger btn-small"
+                        onClick={() => setParameters((p) => p.filter((_, idx) => idx !== i))}
+                      >
+                        Delete<span className="visually-hidden"> parameter {parameter.name}</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <div>
+          <button type="button" className="btn btn-secondary" onClick={() => setShowAdd(true)}>Add parameter</button>
+        </div>
+      </div>
+
+      <Modal open={showAdd} onClose={closeAdd} title="Add parameter">
+        {/* Not a <form>: this dialog lives inside the page form and nested forms are invalid HTML. */}
+        <div
+          className="stack"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "checkbox") {
+              e.preventDefault();
+              addParameter();
+            }
           }}
-          value={newParameterDefault}
-          onChange={setNewParameterDefault}
-        />
-        <TextInput
-          label="Description"
-          value={newParameterDescription}
-          onChange={(e) => setNewParameterDescription(e.currentTarget.value)}
-        />
-        <Button m="0.5rem 0 0" onClick={() => addParameter()}>Add</Button>
+        >
+          <Field label="Type">
+            <select value={type} onChange={(e) => changeType(e.target.value as ParameterType)}>
+              <option>Number</option>
+              <option>String</option>
+              <option>Boolean</option>
+            </select>
+          </Field>
+          <Field label="Name (must match the variable in your code)" error={nameError}>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" />
+          </Field>
+          <ParameterInputField
+            input={{ id: 1, datatype: type, name: "Default value", defaultValue: "", description: null }}
+            value={defaultValue}
+            onChange={setDefaultValue}
+          />
+          <Field label="Description (optional)">
+            <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} />
+          </Field>
+          <div className="row">
+            <button type="button" className="btn" onClick={addParameter}>Add parameter</button>
+            <button type="button" className="btn btn-secondary" onClick={closeAdd}>Cancel</button>
+          </div>
+        </div>
       </Modal>
-      <Divider my="md" />
 
-      <Title order={2}>Preview</Title>
-      <ModelGenerator
-        iterations={[{
-          code,
-          createdAt: new Date("1998-04-10T12:00:00"), // Please don't hate me :D
-          id: 1,
-          parameters,
-          timeToGenerate: null,
-          number: 1,
-        }]}
-        createScreenshot={createScreenshot}
-        setTimeToGenerate={setTimeToGenerate}
-      />
-    </Card>
+      <div className="stack-sm">
+        <h3>Preview</h3>
+        <ModelGenerator
+          iterations={[{
+            code,
+            createdAt: new Date(),
+            id: 1,
+            parameters,
+            timeToGenerate: null,
+            number: 1,
+          }]}
+          createScreenshot={createScreenshot}
+          setTimeToGenerate={setTimeToGenerate}
+        />
+      </div>
+    </section>
   );
-}
+};

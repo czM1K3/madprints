@@ -1,15 +1,15 @@
-import { Anchor, Box, Button, Card, Divider, FileButton, Image, LoadingOverlay, Select, Text, TextInput, Title } from "@mantine/core";
-import React, { type Dispatch, type SetStateAction, type FC, useState, useEffect } from "react";
+"use client";
+
+import React, { type Dispatch, type SetStateAction, type FC, useState, useEffect, useMemo, useId } from "react";
 import { type Categories } from "~/app/_types/categories";
-import { Carousel, CarouselSlide } from '@mantine/carousel';
 import Editor from "~/app/_components/common/editor";
-import { useColorScheme } from "@mantine/hooks";
+import { Field } from "~/app/_components/ui/field";
 
 type ModelBaseProps = {
-  isEditing?: true,
-  title: string
+  isEditing?: true;
+  title: string;
   setTitle: Dispatch<SetStateAction<string>>;
-  description: string
+  description: string;
   setDescription: Dispatch<SetStateAction<string>>;
   category: number | null;
   setCategory: Dispatch<SetStateAction<number | null>>;
@@ -17,125 +17,108 @@ type ModelBaseProps = {
   files: File[] | null;
   setFiles: Dispatch<SetStateAction<File[] | null>>;
   images: string[];
+  titleError?: string | null;
+  imagesError?: string | null;
 };
 
-const toBase64 = (file: File): Promise<string | null> => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
-  reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : null);
-  reader.onerror = reject;
-});
+const MAX_IMAGES = 10;
 
-export const ModelBase: FC<ModelBaseProps> = ({ isEditing, title, setTitle, description, setDescription, category, setCategory, categories, files, setFiles, images }) => {
-  const [previews, setPreviews] = useState<string[]>([]);
-  const colorScheme = useColorScheme();
-
-  useEffect(() => {
-    (async () => {
-      if (!files) return;
-      const arr: string[] = [];
-      for (const file of files) {
-        const res = await toBase64(file);
-        if (res) {
-          arr.push(res);
-        }
-      }
-      setPreviews(arr);
-    })().catch(() => console.log("Error"));
-  }, [files]);
+export const ModelBase: FC<ModelBaseProps> = ({
+  isEditing, title, setTitle, description, setDescription, category, setCategory,
+  categories, files, setFiles, images, titleError, imagesError,
+}) => {
+  const descriptionLabelId = useId();
+  const previews = useMemo(() => (files ?? []).map((f) => URL.createObjectURL(f)), [files]);
+  useEffect(() => () => previews.forEach((url) => URL.revokeObjectURL(url)), [previews]);
 
   const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState(false);
   const fetchImages = async () => {
     setIsDownloading(true);
-    const newFiles = await Promise.all(images.map(async (image) => {
-      const data = await fetch(image);
-      const blob = await data.blob();
-      const file = new File([blob], image, {
-        type: data.type || "image/jpeg",
-      });
-      return file;
-    }));
-    setFiles(newFiles);
+    setDownloadError(false);
+    try {
+      const newFiles = await Promise.all(images.map(async (image) => {
+        const data = await fetch(image);
+        const blob = await data.blob();
+        return new File([blob], image, { type: blob.type || "image/jpeg" });
+      }));
+      setFiles(newFiles);
+    } catch {
+      setDownloadError(true);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
-    <Card shadow="sm" withBorder p="md" mb="sm">
-      <Title>{isEditing ? "Edit existing model" : "Create new model"}</Title>
+    <section className="card stack" aria-labelledby="details-heading">
+      <h2 id="details-heading">{isEditing ? "Model details" : "Model details"}</h2>
 
-      <Title order={2}>Model name</Title>
-      <TextInput
-        value={title}
-        onChange={(e) => setTitle(e.currentTarget.value)}
-        multiple
-      />
-      <Divider my="md" />
+      <Field label="Model name (required)" error={titleError}>
+        <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} />
+      </Field>
 
-      <Title order={2}>Description</Title>
-      <Text>
-        {"supports "}
-        <Anchor
-          href="https://www.markdownguide.org/basic-syntax/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >MarkDown</Anchor>
-        {" syntax"}
-      </Text>
-      <Editor
-        code={description}
-        setCode={setDescription}
-        colorScheme={colorScheme}
-        langauge="markdown"
-        height="30vh"
-      />
-      <Divider my="md" />
+      <div className="field">
+        <span id={descriptionLabelId} className="label">Description</span>
+        <span className="hint">
+          Supports <a href="https://www.markdownguide.org/basic-syntax/" target="_blank" rel="noopener noreferrer">Markdown<span className="visually-hidden"> (opens in new tab)</span></a> syntax.
+        </span>
+        <Editor code={description} setCode={setDescription} langauge="markdown" label="Description in Markdown" height="30vh" />
+      </div>
 
-      <Title order={2}>Category</Title>
-      <Select
-        placeholder="Pick category"
-        data={categories.names}
-        value={category ? categories.keyName[category] : "None"}
-        onChange={(v) => v && setCategory(categories.nameKey[v] ?? 0) }
-      />
-      <Divider my="md" />
+      <Field label="Category">
+        <select value={category ?? 0} onChange={(e) => setCategory(Number(e.target.value))}>
+          {categories.names.map((name) => (
+            <option key={name} value={categories.nameKey[name] ?? 0}>{name === "None" ? "No category" : name}</option>
+          ))}
+        </select>
+      </Field>
 
       {files !== null ? (
-        <>
-          <Title order={2}>Images {`(${files.length}/10)`}</Title>
-          {files.length < 10 ? (
-            <Box>
-              <FileButton onChange={(f) => f && setFiles((ff) => [...(ff ?? []), f])} accept="image/png,image/jpeg">
-                {(props) => <Button {...props}>Add image</Button>}
-              </FileButton>
-            </Box>
-          ) : <></>}
-          {previews.length ? (
-            <Carousel height={400} slideGap="md" pt="sm" pb="sm">
+        <fieldset className="stack-sm">
+          <legend>Images ({files.length}/{MAX_IMAGES})</legend>
+          <Field label="Add an image (PNG or JPEG)" error={imagesError} hint={files.length >= MAX_IMAGES ? "Maximum number of images reached." : undefined}>
+            <input
+              type="file"
+              accept="image/png,image/jpeg"
+              disabled={files.length >= MAX_IMAGES}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) setFiles((ff) => [...(ff ?? []), f]);
+                e.target.value = "";
+              }}
+            />
+          </Field>
+          {previews.length > 0 && (
+            <ul className="thumbs">
               {previews.map((preview, i) => (
-                <CarouselSlide key={i}>
-                  <Button pos="absolute" color="red" onClick={() => setFiles((files) => {
-                    const copy = [...(files ?? [])];
-                    copy.splice(i, 1);
-                    return copy;
-                  })}>Remove</Button>
-                  <Image
-                    src={preview}
-                    alt={`Preview image ${i + 1}`}
-                    fit="contain"
-                    w="100%"
-                    h="100%"
-                  />
-                </CarouselSlide>
+                <li key={preview} className="stack-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={preview} alt={`Selected image ${i + 1}`} style={{ width: "9rem", height: "7rem", objectFit: "cover", borderRadius: 8 }} />
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-small"
+                    onClick={() => setFiles((ff) => (ff ?? []).filter((_, idx) => idx !== i))}
+                  >
+                    Remove<span className="visually-hidden"> image {i + 1}</span>
+                  </button>
+                </li>
               ))}
-            </Carousel>
-          ):<></>}
-        </>
+            </ul>
+          )}
+        </fieldset>
       ) : (
-        <Box pos="relative">
-          <Title order={2}>Images - no changes</Title>
-          <Button m="sm" color="orange" onClick={() => fetchImages()}>I want to change images</Button>
-          <LoadingOverlay visible={isDownloading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
-        </Box>
+        <div className="stack-sm">
+          <h3>Images</h3>
+          <p className="muted">Current images stay unchanged unless you replace them.</p>
+          <div>
+            <button type="button" className="btn btn-secondary" onClick={() => void fetchImages()} disabled={isDownloading}>
+              {isDownloading ? "Loading images…" : "Change images"}
+            </button>
+          </div>
+          {downloadError && <p role="alert" className="field-error">Could not load current images. Try again.</p>}
+        </div>
       )}
-    </Card>
+    </section>
   );
-}
+};

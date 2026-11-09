@@ -2,11 +2,10 @@ import React from "react";
 import { type Metadata, type NextPage } from "next";
 import { notFound } from "next/navigation";
 import { api } from "~/trpc/server";
-import { Paper } from "@mantine/core";
 import { NewIteration } from "./_components/newIteration";
 
 export const metadata: Metadata = {
-  title: "Create iteration | MadPrints",
+  title: "Add new version",
 };
 
 type NewIterationPageProps = {
@@ -22,9 +21,7 @@ const NewIterationPage: NextPage<NewIterationPageProps> = async (props) => {
     return notFound();
   }
   return (
-    <Paper>
-      <NewIteration lastCode={modelData.iteration.code} lastParameters={modelData.iteration.parameters} modelId={modelData.id} />
-    </Paper>
+    <NewIteration lastCode={modelData.iteration.code} lastParameters={modelData.iteration.parameters} modelId={modelData.id} />
   );
 };
 

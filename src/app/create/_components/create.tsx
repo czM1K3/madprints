@@ -4,19 +4,19 @@ import React, { useState, type FC } from "react";
 import { ModelBase } from "./modelBase";
 import { ModelIteration } from "./modelIteration";
 import { type ParameterInput } from "~/app/models/[id]/_components/input";
-import { Box, Button, Center, LoadingOverlay } from "@mantine/core";
 import { api } from "~/trpc/react";
-import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
 import { type Categories } from "~/app/_types/categories";
 import axios from "axios";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
+import { useToast } from "~/app/_components/ui/toast";
 
 type CreateModelProps = {
   categories: Categories;
 };
 
 export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
+  const notify = useToast();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [code, setCode] = useState("");
@@ -24,20 +24,31 @@ export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
   const [parameters, setParameters] = useState<ParameterInput[]>([]);
   const [files, setFiles] = useState<File[] | null>([]);
   const [timeToGenerate, setTimeToGenerate] = useState<null | number>(null);
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [imagesError, setImagesError] = useState<string | null>(null);
 
   const mutation = api.model.create.useMutation();
   const router = useRouter();
   const [isSending, setIsSending] = useState(false);
 
-  const submit = async () => {
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (files === null) return;
+    const tErr = title.trim() ? null : "Enter a model name.";
+    const iErr = files.length === 0 ? "Add at least one image. You can also take a screenshot from the preview below." : null;
+    setTitleError(tErr);
+    setImagesError(iErr);
+    if (tErr ?? iErr) {
+      notify({ title: "Please fix the highlighted fields", variant: "error" });
+      return;
+    }
     try {
-      if (files === null) return;
       setIsSending(true);
       const res = await mutation.mutateAsync({
-        title,
+        title: title.trim(),
         description,
         code,
-        category,
+        category: category === 0 ? null : category,
         parameters,
         images: files.map((file) => file.name),
         timeToGenerate,
@@ -45,71 +56,47 @@ export const CreateModel: FC<CreateModelProps> = ({ categories }) => {
       for (const [i, file] of files.entries()) {
         await axios.put(res.presignedUrls[i]!, file);
       }
-      notifications.show({
-        title: "Success",
-        message: "Model was successfully created"
-      });
+      notify({ title: "Model created" });
       router.push(`/models/${res.id}`);
     } catch {
-      notifications.show({
-        title: "Something went wrong",
-        message: "Creating was not successfull",
-        color: "red"
-      });
-    } finally {
+      notify({ title: "Something went wrong", message: "The model could not be created.", variant: "error" });
       setIsSending(false);
     }
-  }
+  };
 
   const screenshot = async () => {
     const canvas = document.querySelector<HTMLCanvasElement>("canvas[data-engine^='three.js']");
     if (!canvas) {
-      notifications.show({
-        title: "Something went wrong",
-        message: "Unable to find preview",
-        color: "red"
-      });
+      notify({ title: "Something went wrong", message: "Unable to find the preview.", variant: "error" });
       return;
     }
-    const base64 = canvas.toDataURL("image/png");
-    const data = await fetch(base64);
-    const blob = await data.blob();
-    const file = new File([blob], `${uuidv4()}.png`, {
-      type: "image/png",
-    });
+    const blob = await (await fetch(canvas.toDataURL("image/png"))).blob();
+    const file = new File([blob], `${uuidv4()}.png`, { type: "image/png" });
     setFiles((files) => [...(files ?? []), file]);
-    notifications.show({
-      title: "Success",
-      message: "Added screenshot successfully"
-    });
+    notify({ title: "Screenshot added to images" });
   };
 
   return (
-    <Box pos="relative">
+    <form className="stack" onSubmit={(e) => void submit(e)} noValidate>
+      <h1>Create new model</h1>
       <ModelBase
-        title={title}
-        setTitle={setTitle}
-        description={description}
-        setDescription={setDescription}
-        categories={categories}
-        category={category}
-        setCategory={setCategory}
-        files={files}
-        setFiles={setFiles}
-        images={[]}
+        title={title} setTitle={setTitle}
+        description={description} setDescription={setDescription}
+        categories={categories} category={category} setCategory={setCategory}
+        files={files} setFiles={setFiles} images={[]}
+        titleError={titleError} imagesError={imagesError}
       />
       <ModelIteration
-        code={code}
-        setCode={setCode}
-        parameters={parameters}
-        setParameters={setParameters}
+        code={code} setCode={setCode}
+        parameters={parameters} setParameters={setParameters}
         createScreenshot={screenshot}
         setTimeToGenerate={setTimeToGenerate}
       />
-      <Center>
-        <Button mb="sm" onClick={() => submit()}>Create</Button>
-      </Center>
-      <LoadingOverlay visible={isSending} zIndex={99} overlayProps={{ radius: "sm", blur: 2 }} />
-    </Box>
+      <div>
+        <button type="submit" className="btn" disabled={isSending}>
+          {isSending ? "Creating…" : "Create model"}
+        </button>
+      </div>
+    </form>
   );
-}
+};

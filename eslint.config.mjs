@@ -28,8 +28,6 @@ export default defineConfig([
         { argsIgnorePattern: "^_" },
       ],
       "@typescript-eslint/require-await": "off",
-      // Existing components sync state from props in effects; flag but do not fail.
-      "react-hooks/set-state-in-effect": "warn",
       "@typescript-eslint/no-misused-promises": [
         "error",
         { checksVoidReturn: { attributes: false } },

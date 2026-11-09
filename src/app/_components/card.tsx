@@ -1,4 +1,3 @@
-import { Badge, Button, Card, CardSection, Image, Text } from "@mantine/core";
 import Link from "next/link";
 import React, { type FC } from "react";
 
@@ -10,27 +9,20 @@ type ModelCardProps = {
   image?: string;
 };
 
-export const ModelCard: FC<ModelCardProps> = ({ description, id, title, category, image }) => {
-  return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder>
-      <CardSection>
-        <Image
-          src={image ?? "/bg-8.png"}
-          alt={`Image of ${title}`}
-          width={400}
-          height={200}
-        />
-      </CardSection>
-      <Text fw={500}>{title}</Text>
-      {category && (
-        <Badge>{category}</Badge>
-      )}
-      <Text size="sm" c="dimmed" lineClamp={1}>{description}</Text>
-      <Link href={`/models/${id}`}>
-        <Button component="div">
-          View
-        </Button>
-      </Link>
-    </Card>
-  )
-};
+export const ModelCard: FC<ModelCardProps> = ({ description, id, title, category, image }) => (
+  <article className="model-card">
+    {image ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={image} alt="" loading="lazy" />
+    ) : (
+      <div className="thumb-placeholder" aria-hidden="true">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" /><path d="m3 7 9 5 9-5M12 12v10" /></svg>
+      </div>
+    )}
+    <div className="body">
+      <h3><Link href={`/models/${id}`}>{title}</Link></h3>
+      {category && <span className="badge">{category}</span>}
+      <p className="muted">{description}</p>
+    </div>
+  </article>
+);

@@ -1,4 +1,3 @@
-import { Box, Button, Card, Title, TypographyStylesProvider } from "@mantine/core";
 import { notFound } from "next/navigation";
 import { type FC } from "react";
 import { api, HydrateClient } from "~/trpc/server";
@@ -6,22 +5,18 @@ import { ModelGenerator } from "./_components/generator";
 import { UserInfo } from "./_components/user";
 import { auth } from "~/server/auth";
 import Link from "next/link";
-import type { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
 import Markdown from "markdown-to-jsx";
-import { ImagesCarousel } from "./_components/images";
+import { ImagesGallery } from "./_components/images";
 
 type ModelPageProps = {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
 };
 
-export const generateMetadata = async (props: ModelPageProps, _parent: ResolvingMetadata): Promise<Metadata> => {
+export const generateMetadata = async (props: ModelPageProps): Promise<Metadata> => {
   const { id } = await props.params;
   const title = await api.public.modelTitle({ id }).catch(() => null);
-  return {
-    title: title ? `${title} | MadPrints`: "Model not found",
-  };
+  return { title: title ?? "Model not found" };
 };
 
 const ModelPage: FC<ModelPageProps> = async (props) => {
@@ -31,33 +26,34 @@ const ModelPage: FC<ModelPageProps> = async (props) => {
     return notFound();
   }
   const session = await auth();
+  const isOwner = session?.user?.id === modelData.user.id;
   return (
     <HydrateClient>
-      <main>
-        <Card shadow="sm" withBorder p="sm" mt="md" mb="md">
-          <Title>{modelData.title}</Title>
+      <article className="stack">
+        <header className="stack-sm">
+          <h1>{modelData.title}</h1>
           <UserInfo id={modelData.user.id} image={modelData.user.image} name={modelData.user.name} />
-          <ImagesCarousel images={modelData.images} />
-          <TypographyStylesProvider>
-            <Markdown>{modelData.description}</Markdown>
-          </TypographyStylesProvider>
-          {session?.user?.id === modelData.user.id && (
-            <Box>
-              <Link href={`/models/${modelData.id}/edit`}>
-                <Button component="div" m="xs">Edit</Button>
-              </Link>
-              <Link href={`/models/${modelData.id}/new-iteration`}>
-                <Button component="div" m="xs">New iteration</Button>
-              </Link>
-            </Box>
+          {isOwner && (
+            <div className="row">
+              <Link href={`/models/${modelData.id}/edit`} className="btn btn-secondary">Edit details</Link>
+              <Link href={`/models/${modelData.id}/new-iteration`} className="btn btn-secondary">Add new version</Link>
+            </div>
           )}
-        </Card>
+        </header>
+        <ImagesGallery images={modelData.images} title={modelData.title} />
+        <section aria-labelledby="about" className="prose">
+          <h2 id="about">About this model</h2>
+          <Markdown options={{ disableParsingRawHTML: true }}>{modelData.description}</Markdown>
+        </section>
         {modelData.iterations.length > 0 && (
-          <ModelGenerator iterations={modelData.iterations} />
+          <section aria-labelledby="generate">
+            <h2 id="generate">Customize and generate</h2>
+            <ModelGenerator iterations={modelData.iterations} />
+          </section>
         )}
-      </main>
+      </article>
     </HydrateClient>
   );
-}
+};
 
 export default ModelPage;

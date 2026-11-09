@@ -1,22 +1,12 @@
-import { Box, Button, Center, Title } from "@mantine/core";
 import { type NextPage } from "next";
 import Link from "next/link";
 
-const NotFound: NextPage = () => {
-  return (
-    <Center>
-      <Box>
-        <Center m="sm">
-          <Title>Page not found</Title>
-        </Center>
-        <Center m="sm">
-          <Link href="/">
-            <Button component="div">Go back to main page</Button>
-          </Link>
-        </Center>
-      </Box>
-    </Center>
-  );
-}
+const NotFound: NextPage = () => (
+  <div className="center stack">
+    <h1>Page not found</h1>
+    <p className="muted">The page you are looking for does not exist or was moved.</p>
+    <div><Link href="/" className="btn">Back to all models</Link></div>
+  </div>
+);
 
 export default NotFound;
